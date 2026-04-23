@@ -151,4 +151,36 @@ public class LeadCommandHandlersTests
         var saved = await db.Leads.FindAsync(id);
         saved!.Status.Should().Be(LeadStatus.Converted);
     }
+
+    [Fact]
+    public async Task Convert_rejects_unqualified_lead()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var id = Guid.NewGuid();
+        db.Leads.Add(new Lead { Id = id, TenantId = tenantId, FirstName = "Unq", LastName = "Lead",
+            Email = "unq@lead.com", Status = LeadStatus.Unqualified, Source = LeadSource.Website });
+        await db.SaveChangesAsync();
+
+        var h = new ConvertLeadCommandHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new ConvertLeadCommand(id), default);
+
+        r.IsSuccess.Should().BeFalse();
+        r.Error.Should().Contain("Unqualified");
+    }
+
+    [Fact]
+    public async Task Delete_rejects_converted_lead()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var id = Guid.NewGuid();
+        db.Leads.Add(new Lead { Id = id, TenantId = tenantId, FirstName = "Conv", LastName = "Lead",
+            Email = "conv@lead.com", Status = LeadStatus.Converted, Source = LeadSource.Website });
+        await db.SaveChangesAsync();
+
+        var h = new DeleteLeadCommandHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new DeleteLeadCommand(id), default);
+
+        r.IsSuccess.Should().BeFalse();
+        r.Error.Should().Contain("Converted");
+    }
 }

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
+using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Identity;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
@@ -24,6 +25,8 @@ public sealed class DeleteLeadCommandHandler(
         var row = await db.Leads
             .FirstOrDefaultAsync(l => l.Id == cmd.Id && l.TenantId == tenantContext.TenantId!.Value, ct);
         if (row is null) return Result.Failure("Lead not found.");
+        if (row.Status == LeadStatus.Converted)
+            return Result.Failure("Converted leads cannot be deleted.");
 
         db.Leads.Remove(row);
         await db.SaveChangesAsync(ct);

@@ -29,6 +29,8 @@ public sealed class ConvertLeadCommandHandler(
         if (row is null) return Result.Failure<LeadDto>("Lead not found.");
         if (row.Status == LeadStatus.Converted)
             return Result.Failure<LeadDto>("Lead is already converted.");
+        if (row.Status == LeadStatus.Unqualified)
+            return Result.Failure<LeadDto>("Unqualified leads cannot be converted.");
 
         row.Status    = LeadStatus.Converted;
         row.UpdatedAt = DateTime.UtcNow;
