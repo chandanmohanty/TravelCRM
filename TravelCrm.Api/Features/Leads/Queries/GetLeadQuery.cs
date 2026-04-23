@@ -21,7 +21,9 @@ public sealed class GetLeadQueryHandler(
         if (!currentUser.HasPermission("crm.leads.view"))
             return Result.Failure<LeadDto>("You don't have permission to view leads.");
 
-        var tenantId = tenantContext.TenantId;
+        if (!tenantContext.IsResolved)
+            return Result.Failure<LeadDto>("Tenant context is not resolved.");
+        var tenantId = tenantContext.TenantId!.Value;
         var row = await db.Leads
             .AsNoTracking()
             .FirstOrDefaultAsync(l => l.Id == query.Id && l.TenantId == tenantId, ct);

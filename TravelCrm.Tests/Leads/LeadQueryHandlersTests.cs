@@ -62,4 +62,25 @@ public class LeadQueryHandlersTests
         r.IsSuccess.Should().BeTrue();
         r.Value!.FirstName.Should().Be("Carol");
     }
+
+    [Fact]
+    public async Task Get_returns_failure_for_lead_belonging_to_different_tenant()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var foreignTenantId = Guid.NewGuid();
+        var foreignId = Guid.NewGuid();
+        db.Leads.Add(new Lead
+        {
+            Id = foreignId, TenantId = foreignTenantId,
+            FirstName = "Eve", LastName = "E", Email = "e@e.com",
+            Status = LeadStatus.New, Source = LeadSource.Website,
+        });
+        await db.SaveChangesAsync();
+
+        var h = new GetLeadQueryHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new GetLeadQuery(foreignId), default);
+
+        r.IsSuccess.Should().BeFalse();
+        r.Error.Should().Contain("not found");
+    }
 }

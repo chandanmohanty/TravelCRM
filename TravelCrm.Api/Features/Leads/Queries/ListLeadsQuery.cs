@@ -23,7 +23,9 @@ public sealed class ListLeadsQueryHandler(
         if (!currentUser.HasPermission("crm.leads.view"))
             return Result.Failure<IReadOnlyList<LeadDto>>("You don't have permission to view leads.");
 
-        var tenantId = tenantContext.TenantId;
+        if (!tenantContext.IsResolved)
+            return Result.Failure<IReadOnlyList<LeadDto>>("Tenant context is not resolved.");
+        var tenantId = tenantContext.TenantId!.Value;
         var rows = await db.Leads
             .AsNoTracking()
             .Where(l => l.TenantId == tenantId)
@@ -42,11 +44,15 @@ internal static class LeadMapper
         l.Status.ToString(),
         l.Source switch
         {
+            LeadSource.Website       => "Website",
+            LeadSource.Referral      => "Referral",
             LeadSource.SocialMedia   => "Social Media",
             LeadSource.EmailCampaign => "Email Campaign",
             LeadSource.TradeShow     => "Trade Show",
             LeadSource.ColdCall      => "Cold Call",
-            _                        => l.Source.ToString(),
+            LeadSource.Partner       => "Partner",
+            LeadSource.Other         => "Other",
+            _                        => throw new ArgumentOutOfRangeException(nameof(l.Source), l.Source, null),
         },
         l.Score, l.AssignedTo, l.Tags.AsReadOnly(), l.Notes,
         l.EstimatedValue, l.CreatedAt, l.UpdatedAt);
