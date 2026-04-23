@@ -95,5 +95,10 @@ public class LeadCommandHandlersTests
         r.Value!.FirstName.Should().Be("New");
         r.Value.Status.Should().Be("Qualified");
         r.Value.Score.Should().Be(80);
+
+        var saved = await db.Leads.FindAsync(id);
+        saved!.FirstName.Should().Be("New");
+        saved.Company.Should().Be("BigCo");
+        saved.UpdatedAt.Should().NotBeNull();
     }
 }

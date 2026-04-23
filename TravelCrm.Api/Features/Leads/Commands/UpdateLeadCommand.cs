@@ -32,6 +32,7 @@ public sealed class UpdateLeadCommandValidator : AbstractValidator<UpdateLeadCom
 {
     public UpdateLeadCommandValidator()
     {
+        RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.FirstName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.LastName).NotEmpty().MaximumLength(100);
         RuleFor(x => x.Email).NotEmpty().EmailAddress().MaximumLength(256);
@@ -48,9 +49,9 @@ public sealed class UpdateLeadCommandHandler(
 {
     public async Task<Result<LeadDto>> Handle(UpdateLeadCommand cmd, CancellationToken ct)
     {
-        if (!tenantContext.IsResolved) return Result.Failure<LeadDto>("Tenant context not resolved.");
         if (!currentUser.HasPermission("crm.leads.manage"))
             return Result.Failure<LeadDto>("You don't have permission to manage leads.");
+        if (!tenantContext.IsResolved) return Result.Failure<LeadDto>("Tenant context not resolved.");
 
         var row = await db.Leads
             .FirstOrDefaultAsync(l => l.Id == cmd.Id && l.TenantId == tenantContext.TenantId!.Value, ct);
@@ -70,7 +71,7 @@ public sealed class UpdateLeadCommandHandler(
         row.Notes          = cmd.Notes ?? string.Empty;
         row.EstimatedValue = cmd.EstimatedValue;
         row.UpdatedAt      = DateTime.UtcNow;
-        row.UpdatedBy      = currentUser.UserId == Guid.Empty ? (Guid?)null : currentUser.UserId;
+        row.UpdatedBy      = currentUser.IsAuthenticated ? currentUser.UserId : (Guid?)null;
 
         await db.SaveChangesAsync(ct);
         return Result.Success(LeadMapper.ToDto(row));

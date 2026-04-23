@@ -46,9 +46,9 @@ public sealed class CreateLeadCommandHandler(
 {
     public async Task<Result<LeadDto>> Handle(CreateLeadCommand cmd, CancellationToken ct)
     {
-        if (!tenantContext.IsResolved) return Result.Failure<LeadDto>("Tenant context not resolved.");
         if (!currentUser.HasPermission("crm.leads.manage"))
             return Result.Failure<LeadDto>("You don't have permission to manage leads.");
+        if (!tenantContext.IsResolved) return Result.Failure<LeadDto>("Tenant context not resolved.");
 
         var row = new Lead
         {
@@ -68,7 +68,7 @@ public sealed class CreateLeadCommandHandler(
             Notes          = cmd.Notes ?? string.Empty,
             EstimatedValue = cmd.EstimatedValue,
             CreatedAt      = DateTime.UtcNow,
-            CreatedBy      = currentUser.UserId == Guid.Empty ? (Guid?)null : currentUser.UserId,
+            CreatedBy      = currentUser.IsAuthenticated ? currentUser.UserId : (Guid?)null,
         };
 
         db.Leads.Add(row);
