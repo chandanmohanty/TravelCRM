@@ -23,7 +23,7 @@ public enum LeadSource
 
 public sealed class Lead : IAuditableEntity
 {
-    public Guid         Id             { get; set; }
+    public Guid         Id             { get; set; } = Guid.NewGuid();
     public Guid         TenantId       { get; set; }
     public string       FirstName      { get; set; } = string.Empty;
     public string       LastName       { get; set; } = string.Empty;
@@ -38,7 +38,8 @@ public sealed class Lead : IAuditableEntity
     public List<string> Tags           { get; set; } = new();
     public string       Notes          { get; set; } = string.Empty;
     public decimal?     EstimatedValue { get; set; }
-    public DateTime     CreatedAt      { get; set; }
+    public DateTime     CreatedAt      { get; set; } = DateTime.UtcNow;
     public DateTime?    UpdatedAt      { get; set; }
     public Guid?        CreatedBy      { get; set; }
+    public Guid?        UpdatedBy      { get; set; }
 }

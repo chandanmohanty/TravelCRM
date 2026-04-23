@@ -12,7 +12,7 @@ using TravelCrm.Api.Infrastructure.Persistence;
 namespace TravelCrm.Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20260423160326_AddLeads")]
+    [Migration("20260423160736_AddLeads")]
     partial class AddLeads
     {
         /// <inheritdoc />
@@ -620,13 +620,11 @@ namespace TravelCrm.Api.Migrations
                         .HasColumnName("id");
 
                     b.Property<string>("AssignedTo")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("assigned_to");
 
                     b.Property<string>("Company")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("company");
@@ -656,7 +654,6 @@ namespace TravelCrm.Api.Migrations
                         .HasColumnName("first_name");
 
                     b.Property<string>("JobTitle")
-                        .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)")
                         .HasColumnName("job_title");
@@ -668,13 +665,11 @@ namespace TravelCrm.Api.Migrations
                         .HasColumnName("last_name");
 
                     b.Property<string>("Notes")
-                        .IsRequired()
                         .HasMaxLength(4000)
                         .HasColumnType("character varying(4000)")
                         .HasColumnName("notes");
 
                     b.Property<string>("Phone")
-                        .IsRequired()
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)")
                         .HasColumnName("phone");
@@ -706,6 +701,10 @@ namespace TravelCrm.Api.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("updated_at");
+
+                    b.Property<Guid?>("UpdatedBy")
+                        .HasColumnType("uuid")
+                        .HasColumnName("updated_by");
 
                     b.HasKey("Id")
                         .HasName("pk_leads");

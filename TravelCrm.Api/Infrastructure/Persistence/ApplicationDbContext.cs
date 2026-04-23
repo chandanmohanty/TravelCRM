@@ -349,19 +349,19 @@ public sealed class ApplicationDbContext(
             b.Property(l => l.FirstName).HasMaxLength(100).IsRequired();
             b.Property(l => l.LastName).HasMaxLength(100).IsRequired();
             b.Property(l => l.Email).HasMaxLength(256).IsRequired();
-            b.Property(l => l.Phone).HasMaxLength(50);
-            b.Property(l => l.Company).HasMaxLength(200);
-            b.Property(l => l.JobTitle).HasMaxLength(200);
+            b.Property(l => l.Phone).HasMaxLength(50).IsRequired(false);
+            b.Property(l => l.Company).HasMaxLength(200).IsRequired(false);
+            b.Property(l => l.JobTitle).HasMaxLength(200).IsRequired(false);
             b.Property(l => l.Status).HasConversion<int>();
             b.Property(l => l.Source).HasConversion<int>();
             b.Property(l => l.Score).HasDefaultValue(0);
-            b.Property(l => l.AssignedTo).HasMaxLength(200);
+            b.Property(l => l.AssignedTo).HasMaxLength(200).IsRequired(false);
             b.Property(l => l.Tags)
                 .HasConversion(
-                    v => string.Join(',', v),
-                    v => v.Split(',', StringSplitOptions.RemoveEmptyEntries).ToList())
+                    v => string.Join('|', v),
+                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList())
                 .HasMaxLength(1000);
-            b.Property(l => l.Notes).HasMaxLength(4000);
+            b.Property(l => l.Notes).HasMaxLength(4000).IsRequired(false);
             b.Property(l => l.EstimatedValue).HasColumnType("numeric(18,2)");
             b.HasIndex(l => l.TenantId);
         });
