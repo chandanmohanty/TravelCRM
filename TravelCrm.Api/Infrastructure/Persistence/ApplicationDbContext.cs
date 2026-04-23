@@ -359,7 +359,11 @@ public sealed class ApplicationDbContext(
             b.Property(l => l.Tags)
                 .HasConversion(
                     v => string.Join('|', v),
-                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList())
+                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
+                        (a, b2) => a!.SequenceEqual(b2!),
+                        v => v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode())),
+                        v => v.ToList()))
                 .HasMaxLength(1000);
             b.Property(l => l.Notes).HasMaxLength(4000).IsRequired(false);
             b.Property(l => l.EstimatedValue).HasColumnType("numeric(18,2)");
