@@ -101,4 +101,54 @@ public class LeadCommandHandlersTests
         saved.Company.Should().Be("BigCo");
         saved.UpdatedAt.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task Delete_removes_lead()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var id = Guid.NewGuid();
+        db.Leads.Add(new Lead { Id = id, TenantId = tenantId, FirstName = "Del", LastName = "Me",
+            Email = "del@me.com", Status = LeadStatus.New, Source = LeadSource.Other });
+        await db.SaveChangesAsync();
+
+        var h = new DeleteLeadCommandHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new DeleteLeadCommand(id), default);
+
+        r.IsSuccess.Should().BeTrue();
+        db.Leads.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task Delete_returns_failure_for_wrong_tenant()
+    {
+        var (db, tenant, _) = TestDb.New();
+        var id = Guid.NewGuid();
+        db.Leads.Add(new Lead { Id = id, TenantId = Guid.NewGuid(), FirstName = "X", LastName = "Y",
+            Email = "x@y.com", Status = LeadStatus.New, Source = LeadSource.Other });
+        await db.SaveChangesAsync();
+
+        var h = new DeleteLeadCommandHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new DeleteLeadCommand(id), default);
+
+        r.IsSuccess.Should().BeFalse();
+        r.Error.Should().Contain("not found");
+    }
+
+    [Fact]
+    public async Task Convert_sets_status_to_Converted()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var id = Guid.NewGuid();
+        db.Leads.Add(new Lead { Id = id, TenantId = tenantId, FirstName = "Conv", LastName = "Me",
+            Email = "conv@me.com", Status = LeadStatus.Qualified, Source = LeadSource.Referral });
+        await db.SaveChangesAsync();
+
+        var h = new ConvertLeadCommandHandler(db, tenant, new FakeCurrentUser(Guid.NewGuid()));
+        var r = await h.Handle(new ConvertLeadCommand(id), default);
+
+        r.IsSuccess.Should().BeTrue();
+        r.Value!.Status.Should().Be("Converted");
+        var saved = await db.Leads.FindAsync(id);
+        saved!.Status.Should().Be(LeadStatus.Converted);
+    }
 }
