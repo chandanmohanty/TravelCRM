@@ -1,6 +1,5 @@
 // src/app/pages/crm/leads/lead-form/lead-form.component.ts
 import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatCardModule } from '@angular/material/card';
@@ -19,7 +18,7 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CommonModule, ReactiveFormsModule, RouterLink,
+    ReactiveFormsModule, RouterLink,
     MatCardModule, MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
     MatSnackBarModule, MatDividerModule,
@@ -208,7 +207,7 @@ export class LeadFormComponent implements OnInit {
   }
 
   save(): void {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.saving()) return;
     this.saving.set(true);
     const v = this.form.getRawValue();
     const body: LeadWriteBody = {
