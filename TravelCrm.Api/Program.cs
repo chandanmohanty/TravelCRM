@@ -235,6 +235,11 @@ builder.Services.AddMediatR(cfg =>
 
 builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
+// Inventory — pricing strategy fallback. Resource-type-specific implementations
+// (e.g. HotelSeasonalPricing) are added by future sub-projects.
+builder.Services.AddScoped<TravelCrm.Api.Features.Inventory.Holds.IResourcePricing,
+                           TravelCrm.Api.Features.Inventory.Holds.NullResourcePricing>();
+
 // Health Checks
 builder.Services.AddHealthChecks()
     .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!,
