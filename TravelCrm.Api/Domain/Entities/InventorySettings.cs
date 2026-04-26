@@ -12,7 +12,7 @@ public sealed class InventorySettings : IAuditableEntity
     /// <summary>How long a soft-hold remains valid before the sweeper expires it. Default 24h.</summary>
     public int HoldTtlHours { get; set; } = 24;
 
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     public Guid? CreatedBy { get; set; }
     public Guid? UpdatedBy { get; set; }

@@ -18,7 +18,7 @@ public sealed class ResourceHold : BaseEntity
 
     public ResourceHoldStatus Status { get; set; } = ResourceHoldStatus.Held;
 
-    /// <summary>UTC. Non-null only when Status == Held.</summary>
+    /// <summary>UTC. Set when Status == Held; remains set on transitions (Confirmed clears it; Released/Expired keep it for audit).</summary>
     public DateTime? ExpiresAt { get; set; }
 
     /// <summary>Set when the future Booking module attaches a booking id.</summary>

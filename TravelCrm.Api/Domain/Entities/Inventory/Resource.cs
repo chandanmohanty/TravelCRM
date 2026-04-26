@@ -3,7 +3,7 @@ namespace TravelCrm.Api.Domain.Entities.Inventory;
 public abstract class Resource : BaseEntity
 {
     /// <summary>Discriminator. Set automatically by subclass constructors.</summary>
-    public ResourceKind Kind { get; protected set; }
+    public ResourceKind Kind { get; init; }
 
     /// <summary>Free-form type slug ("Hotel", "RoomType", "Vehicle", "Driver", ...). Sub-modules add their own values.</summary>
     public string Type { get; set; } = default!;
