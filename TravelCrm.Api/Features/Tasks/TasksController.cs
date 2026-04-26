@@ -22,7 +22,10 @@ public sealed class TasksController(IMediator mediator) : ControllerBase
     {
         var r = await mediator.Send(new ListTasksQuery(
             search, status, priority, assignedToUserId, taskTypeId, includeDeleted));
-        return r.IsSuccess ? Ok(r.Value) : Forbid();
+        if (r.IsSuccess) return Ok(r.Value);
+        return r.Error!.Contains("Tenant", StringComparison.OrdinalIgnoreCase)
+            ? BadRequest(new { error = r.Error })
+            : Forbid();
     }
 
     [HttpGet("{id:guid}")]

@@ -330,14 +330,19 @@ export class TaskListComponent implements OnInit {
   }
 
   private handleApiError(err: any, fallback: string): void {
+    const serverMsg = err?.error?.error as string | undefined;
     if (err?.status === 401) {
       this.errorMessage.set('Your session expired. Please log out and sign in again.');
+    } else if (serverMsg?.toLowerCase().includes('tenant')) {
+      this.errorMessage.set(
+        'Tasks are tenant-scoped. Platform Admin accounts cannot manage tasks — please sign in as a tenant user instead.'
+      );
     } else if (err?.status === 403) {
       this.errorMessage.set(
         'You don\'t have permission to manage tasks. If your role was just updated, sign out and sign back in to refresh your access.'
       );
     } else {
-      this.errorMessage.set(err?.error?.error ?? fallback);
+      this.errorMessage.set(serverMsg ?? fallback);
     }
   }
 }
