@@ -1,6 +1,6 @@
 namespace TravelCrm.Api.Domain.Entities;
 
-public enum TaskPriority
+public enum TenantTaskPriority
 {
     Low = 0,
     Medium = 1,

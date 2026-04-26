@@ -1,6 +1,6 @@
 namespace TravelCrm.Api.Domain.Entities;
 
-public enum TaskStatus
+public enum TenantTaskStatus
 {
     ToDo = 0,
     InProgress = 1,
