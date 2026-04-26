@@ -52,9 +52,11 @@ public sealed class CheckAvailabilityHandler(
             // Whole-day bucket only for now (slot UI is module-specific)
             var calOverride = overrides.FirstOrDefault(c => c.Date == d && c.Slot is null);
             var capacity = calOverride?.Capacity ?? defaultCapacity;
+            // Whole-day bucket: any overlapping active hold (whole-day OR slot-specific)
+            // reduces the available count, because a whole-day request would conflict with
+            // any slot-specific hold per the SlotsCollide rule.
             var occupied = holds
-                .Where(h => h.StartDate <= d && h.EndDate >= d
-                         && (h.Slot is null)) // count whole-day holds only for whole-day bucket
+                .Where(h => h.StartDate <= d && h.EndDate >= d)
                 .Sum(h => h.Quantity);
 
             result.Add(new AvailabilityDto(

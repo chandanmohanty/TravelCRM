@@ -47,7 +47,10 @@ public sealed class CalendarController(IMediator mediator) : ControllerBase
     public async Task<IActionResult> Unblock(Guid resourceId, [FromBody] UnblockDateRequest body)
     {
         var r = await mediator.Send(new UnblockDateCommand(resourceId, body.Date, body.Slot));
-        return r.IsSuccess ? Ok() : Forbid();
+        if (r.IsSuccess) return Ok();
+        return r.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
+            ? NotFound(new { error = r.Error })
+            : Forbid();
     }
 }
 
