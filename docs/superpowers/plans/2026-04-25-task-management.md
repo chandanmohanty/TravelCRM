@@ -497,19 +497,19 @@ public class TaskQueryHandlersTests
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Mine",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, IsDeleted = false,
+            CreatedByUserId = user.UserId, IsDeleted = false,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Trashed",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, IsDeleted = true,
+            CreatedByUserId = user.UserId, IsDeleted = true,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = otherTenantId, Title = "Other tenant",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, IsDeleted = false,
+            CreatedByUserId = user.UserId, IsDeleted = false,
         });
         await db.SaveChangesAsync();
 
@@ -532,13 +532,13 @@ public class TaskQueryHandlersTests
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Active",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, IsDeleted = false,
+            CreatedByUserId = user.UserId, IsDeleted = false,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Trashed",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, IsDeleted = true,
+            CreatedByUserId = user.UserId, IsDeleted = true,
         });
         await db.SaveChangesAsync();
 
@@ -574,13 +574,13 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = parentId, TenantId = tenantId, Title = "Parent",
-            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Child",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, ParentTaskId = parentId,
+            CreatedByUserId = user.UserId, ParentTaskId = parentId,
         });
         await db.SaveChangesAsync();
 
@@ -603,7 +603,7 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = taskId, TenantId = otherTenantId, Title = "Not yours",
-            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
         });
         await db.SaveChangesAsync();
 
@@ -630,7 +630,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Queries;
 
@@ -703,7 +703,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Queries;
 
@@ -835,7 +835,7 @@ public class TaskCommandHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = parentId, TenantId = tenantId, Title = "Parent",
-            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
         });
         await db.SaveChangesAsync();
 
@@ -864,7 +864,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Commands;
 
@@ -932,7 +932,7 @@ public sealed class CreateTaskHandler(
             Priority = Enum.Parse<TenantTaskPriority>(cmd.Priority, ignoreCase: true),
             TaskTypeId = cmd.TaskTypeId,
             AssignedToUserId = cmd.AssignedToUserId,
-            CreatedByUserId = currentUser.Id,
+            CreatedByUserId = currentUser.UserId,
             ParentTaskId = cmd.ParentTaskId,
             DueDate = cmd.DueDate,
             EstimatedMinutes = cmd.EstimatedMinutes,
@@ -942,7 +942,7 @@ public sealed class CreateTaskHandler(
 
         db.TenantTasks.Add(task);
 
-        if (cmd.AssignedToUserId.HasValue && cmd.AssignedToUserId.Value != currentUser.Id)
+        if (cmd.AssignedToUserId.HasValue && cmd.AssignedToUserId.Value != currentUser.UserId)
         {
             db.Notifications.Add(new Notification
             {
@@ -1004,7 +1004,7 @@ public async Task UpdateTask_ChangesFields_AndPersists()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "Old title",
-        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Low, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Low, CreatedByUserId = user.UserId,
     });
     await db.SaveChangesAsync();
 
@@ -1031,7 +1031,7 @@ public async Task UpdateTask_FromOtherTenant_ReturnsNotFound()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = otherTenantId, Title = "Other",
-        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
     });
     await db.SaveChangesAsync();
 
@@ -1055,7 +1055,7 @@ public async Task UpdateTask_NewAssignee_CreatesNotification()
     {
         Id = taskId, TenantId = tenantId, Title = "T",
         Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-        CreatedByUserId = user.Id, AssignedToUserId = null,
+        CreatedByUserId = user.UserId, AssignedToUserId = null,
     });
     await db.SaveChangesAsync();
 
@@ -1079,7 +1079,7 @@ public async Task UpdateTaskStatus_ChangesStatus_AndNotifies()
     {
         Id = taskId, TenantId = tenantId, Title = "T",
         Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-        CreatedByUserId = user.Id, AssignedToUserId = assignee,
+        CreatedByUserId = user.UserId, AssignedToUserId = assignee,
     });
     await db.SaveChangesAsync();
 
@@ -1101,7 +1101,7 @@ public async Task UpdateTaskStatus_InvalidStatus_ReturnsFailure()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
     });
     await db.SaveChangesAsync();
 
@@ -1128,7 +1128,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Commands;
 
@@ -1213,7 +1213,7 @@ public sealed class UpdateTaskHandler(
         // Notify new assignee on assignment change
         if (cmd.AssignedToUserId.HasValue
             && cmd.AssignedToUserId != previousAssignee
-            && cmd.AssignedToUserId.Value != currentUser.Id)
+            && cmd.AssignedToUserId.Value != currentUser.UserId)
         {
             db.Notifications.Add(new Notification
             {
@@ -1231,7 +1231,7 @@ public sealed class UpdateTaskHandler(
         // Notify on status change (creator + assignee)
         if (task.Status != previousStatus)
         {
-            EmitStatusChangedNotifications(task, previousStatus, currentUser.Id, tenantContext.TenantId!.Value);
+            EmitStatusChangedNotifications(task, previousStatus, currentUser.UserId, tenantContext.TenantId!.Value);
         }
 
         await db.SaveChangesAsync(ct);
@@ -1274,7 +1274,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Commands;
 
@@ -1324,8 +1324,8 @@ public sealed class UpdateTaskStatusHandler(
 
         var msg = $"Task '{task.Title}' status changed: {previousStatus} → {newStatus}";
         var recipients = new HashSet<Guid>();
-        if (task.CreatedByUserId != currentUser.Id) recipients.Add(task.CreatedByUserId);
-        if (task.AssignedToUserId.HasValue && task.AssignedToUserId.Value != currentUser.Id)
+        if (task.CreatedByUserId != currentUser.UserId) recipients.Add(task.CreatedByUserId);
+        if (task.AssignedToUserId.HasValue && task.AssignedToUserId.Value != currentUser.UserId)
             recipients.Add(task.AssignedToUserId.Value);
 
         foreach (var userId in recipients)
@@ -1386,7 +1386,7 @@ public async Task DeleteTask_SoftDeletes()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
     });
     await db.SaveChangesAsync();
 
@@ -1407,7 +1407,7 @@ public async Task RestoreTask_UnsetsIsDeleted()
     {
         Id = taskId, TenantId = tenantId, Title = "T",
         Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-        CreatedByUserId = user.Id, IsDeleted = true,
+        CreatedByUserId = user.UserId, IsDeleted = true,
     });
     await db.SaveChangesAsync();
 
@@ -1428,7 +1428,7 @@ public async Task DeleteTask_FromOtherTenant_ReturnsNotFound()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = otherTenantId, Title = "T",
-        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
     });
     await db.SaveChangesAsync();
 
@@ -1454,7 +1454,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Commands;
 
@@ -1495,7 +1495,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.Tasks.Commands;
 
@@ -1776,7 +1776,7 @@ public class TaskTypeHandlersTests
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "T",
             Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
-            CreatedByUserId = user.Id, TaskTypeId = typeId,
+            CreatedByUserId = user.UserId, TaskTypeId = typeId,
         });
         await db.SaveChangesAsync();
 
@@ -1818,7 +1818,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TaskTypes.Queries;
 
@@ -1858,7 +1858,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TaskTypes.Commands;
 
@@ -1917,7 +1917,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TaskTypes.Commands;
 
@@ -1973,7 +1973,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TaskTypes.Commands;
 
@@ -2118,7 +2118,7 @@ public class TimeEntryHandlersTests
     {
         var (db, _, tenantId) = TestDb.New();
         var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
-        var task = SeedTask(db, tenantId, user.Id);
+        var task = SeedTask(db, tenantId, user.UserId);
         var handler = new LogTimeHandler(db, new FakeTenantContext(tenantId), user);
 
         var result = await handler.Handle(
@@ -2127,7 +2127,7 @@ public class TimeEntryHandlersTests
         result.IsSuccess.Should().BeTrue();
         result.Value!.Minutes.Should().Be(30);
         db.TimeEntries.Should().ContainSingle(te =>
-            te.TaskId == task.Id && te.Minutes == 30 && te.UserId == user.Id);
+            te.TaskId == task.Id && te.Minutes == 30 && te.UserId == user.UserId);
     }
 
     [Fact]
@@ -2135,7 +2135,7 @@ public class TimeEntryHandlersTests
     {
         var (db, _, tenantId) = TestDb.New();
         var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
-        var task = SeedTask(db, tenantId, user.Id);
+        var task = SeedTask(db, tenantId, user.UserId);
         task.IsDeleted = true;
         await db.SaveChangesAsync();
 
@@ -2151,15 +2151,15 @@ public class TimeEntryHandlersTests
     {
         var (db, _, tenantId) = TestDb.New();
         var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
-        var task = SeedTask(db, tenantId, user.Id);
+        var task = SeedTask(db, tenantId, user.UserId);
         db.TimeEntries.Add(new TimeEntry
         {
-            Id = Guid.NewGuid(), TenantId = tenantId, TaskId = task.Id, UserId = user.Id,
+            Id = Guid.NewGuid(), TenantId = tenantId, TaskId = task.Id, UserId = user.UserId,
             Minutes = 15, LoggedAt = DateTime.UtcNow,
         });
         db.TimeEntries.Add(new TimeEntry
         {
-            Id = Guid.NewGuid(), TenantId = tenantId, TaskId = task.Id, UserId = user.Id,
+            Id = Guid.NewGuid(), TenantId = tenantId, TaskId = task.Id, UserId = user.UserId,
             Minutes = 45, LoggedAt = DateTime.UtcNow,
         });
         await db.SaveChangesAsync();
@@ -2176,11 +2176,11 @@ public class TimeEntryHandlersTests
     {
         var (db, _, tenantId) = TestDb.New();
         var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
-        var task = SeedTask(db, tenantId, user.Id);
+        var task = SeedTask(db, tenantId, user.UserId);
         var teId = Guid.NewGuid();
         db.TimeEntries.Add(new TimeEntry
         {
-            Id = teId, TenantId = tenantId, TaskId = task.Id, UserId = user.Id,
+            Id = teId, TenantId = tenantId, TaskId = task.Id, UserId = user.UserId,
             Minutes = 15, LoggedAt = DateTime.UtcNow,
         });
         await db.SaveChangesAsync();
@@ -2209,7 +2209,7 @@ using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TimeEntries.Commands;
 
@@ -2251,7 +2251,7 @@ public sealed class LogTimeHandler(
             Id = Guid.NewGuid(),
             TenantId = tenantContext.TenantId!.Value,
             TaskId = cmd.TaskId,
-            UserId = currentUser.Id,
+            UserId = currentUser.UserId,
             Minutes = cmd.Minutes,
             Notes = cmd.Notes,
             LoggedAt = DateTime.UtcNow,
@@ -2271,7 +2271,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TimeEntries.Commands;
 
@@ -2313,7 +2313,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Persistence;
-using TravelCrm.Api.Infrastructure.Security;
+using TravelCrm.Api.Infrastructure.Identity;
 
 namespace TravelCrm.Api.Features.TimeEntries.Queries;
 
