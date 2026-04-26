@@ -133,4 +133,36 @@ public class TaskQueryHandlersTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Contain("not found");
     }
+
+    [Fact]
+    public async Task ListTasks_WithSearch_ReturnsOnlyMatchingTitles()
+    {
+        var (db, tenant, tenantId) = TestDb.New();
+        var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
+
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = Guid.NewGuid(), TenantId = tenantId, Title = "Build deployment pipeline",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
+        });
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = Guid.NewGuid(), TenantId = tenantId, Title = "Fix login bug",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
+        });
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = Guid.NewGuid(), TenantId = tenantId, Title = "Refactor invoice service",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new ListTasksHandler(db, new FakeTenantContext(tenantId), user);
+        var result = await handler.Handle(
+            new ListTasksQuery("invoice", null, null, null, null, false), default);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Value!.Should().HaveCount(1);
+        result.Value!.Single().Title.Should().Be("Refactor invoice service");
+    }
 }

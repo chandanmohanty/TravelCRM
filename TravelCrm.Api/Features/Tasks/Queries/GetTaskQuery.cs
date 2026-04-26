@@ -25,6 +25,7 @@ public sealed class GetTaskHandler(
 
         // Eager-load 3 levels of subtasks (sufficient for typical use)
         var task = await db.TenantTasks
+            .AsNoTracking()
             .Include(t => t.TaskType)
             .Include(t => t.TimeEntries)
             .Include(t => t.Children).ThenInclude(c => c.TaskType)

@@ -31,7 +31,12 @@ public sealed class ListTasksHandler(
         if (!tenantContext.IsResolved)
             return Result.Failure<List<TaskDto>>("Tenant not resolved");
 
+        // NOTE: We Include(TimeEntries) here so TaskMapper can compute TotalLoggedMinutes.
+        // This is acceptable for v1 dataset sizes. Future optimization: project TotalMinutes
+        // server-side via a correlated subquery (.Select(t => new { t, total = t.TimeEntries.Sum(te => te.Minutes) }))
+        // and pass it explicitly to TaskMapper.ToDto via an overload.
         var query = db.TenantTasks
+            .AsNoTracking()
             .Include(t => t.TaskType)
             .Include(t => t.TimeEntries)
             .Where(t => t.TenantId == tenantContext.TenantId);
@@ -39,6 +44,10 @@ public sealed class ListTasksHandler(
         if (!q.IncludeDeleted)
             query = query.Where(t => !t.IsDeleted);
 
+        // TODO(perf): For PostgreSQL we should use EF.Functions.ILike with a pg_trgm index.
+        // ToLower().Contains is portable across providers (incl. EF InMemory used in tests),
+        // but on PostgreSQL it emits LOWER(title) LIKE '%x%' which can't use a btree index.
+        // Defer until the search dataset grows large enough to matter.
         if (!string.IsNullOrWhiteSpace(q.Search))
             query = query.Where(t => t.Title.ToLower().Contains(q.Search.ToLower()));
 
