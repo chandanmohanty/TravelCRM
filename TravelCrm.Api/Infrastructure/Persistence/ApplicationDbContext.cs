@@ -45,6 +45,11 @@ public sealed class ApplicationDbContext(
     // ── CRM ───────────────────────────────────────────────────────────────────
     public DbSet<Lead> Leads => Set<Lead>();
 
+    // ── Task Management ───────────────────────────────────────────────────────
+    public DbSet<TenantTask> TenantTasks => Set<TenantTask>();
+    public DbSet<TaskType> TaskTypes => Set<TaskType>();
+    public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+
     private Guid? GetCurrentTenantId() => tenantContext.TenantId;
 
     protected override void OnModelCreating(ModelBuilder builder)
@@ -401,6 +406,49 @@ public sealed class ApplicationDbContext(
             b.Property(n => n.Title).HasMaxLength(256).IsRequired();
             b.Property(n => n.Message).HasMaxLength(1000).IsRequired();
             b.HasIndex(n => new { n.UserId, n.TenantId, n.CreatedAt });
+        });
+
+        // TenantTask
+        builder.Entity<TenantTask>(b =>
+        {
+            b.Property(t => t.Title).IsRequired().HasMaxLength(200);
+            b.Property(t => t.Description).HasMaxLength(4000);
+            b.Property(t => t.Status).HasConversion<int>();
+            b.Property(t => t.Priority).HasConversion<int>();
+
+            b.HasOne(t => t.Parent)
+                .WithMany(t => t.Children)
+                .HasForeignKey(t => t.ParentTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasOne(t => t.TaskType)
+                .WithMany()
+                .HasForeignKey(t => t.TaskTypeId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasMany(t => t.TimeEntries)
+                .WithOne(te => te.Task)
+                .HasForeignKey(te => te.TaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(t => new { t.TenantId, t.Status });
+            b.HasIndex(t => new { t.TenantId, t.AssignedToUserId });
+            b.HasIndex(t => new { t.TenantId, t.IsDeleted });
+        });
+
+        // TaskType
+        builder.Entity<TaskType>(b =>
+        {
+            b.Property(t => t.Name).IsRequired().HasMaxLength(100);
+            b.Property(t => t.Color).IsRequired().HasMaxLength(7);
+            b.HasIndex(t => new { t.TenantId, t.Name }).IsUnique();
+        });
+
+        // TimeEntry
+        builder.Entity<TimeEntry>(b =>
+        {
+            b.Property(t => t.Notes).HasMaxLength(500);
+            b.HasIndex(t => new { t.TenantId, t.TaskId });
         });
     }
 
