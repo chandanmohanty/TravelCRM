@@ -107,6 +107,11 @@ public static class RolePermissionSeeder
             "dashboard.overview.view",
             // CRM — full task management for admins
             "crm.tasks.view", "crm.tasks.manage", "crm.tasks.admin",
+            // Inventory — full
+            "inventory.suppliers.view", "inventory.suppliers.manage",
+            "inventory.resources.view", "inventory.resources.manage",
+            "inventory.calendar.view",  "inventory.calendar.manage",
+            "inventory.holds.view",     "inventory.holds.manage",
         },
 
         "manager" => new HashSet<string>
@@ -118,6 +123,11 @@ public static class RolePermissionSeeder
             "dashboard.overview.view",
             // CRM — managers can create / edit tasks but not manage the type catalog
             "crm.tasks.view", "crm.tasks.manage",
+            // Inventory — managers can manage resources/calendar/holds but not suppliers
+            "inventory.suppliers.view",
+            "inventory.resources.view", "inventory.resources.manage",
+            "inventory.calendar.view",  "inventory.calendar.manage",
+            "inventory.holds.view",     "inventory.holds.manage",
         },
 
         "readonly" or "read_only" => new HashSet<string>
@@ -129,6 +139,11 @@ public static class RolePermissionSeeder
             "dashboard.overview.view",
             // CRM — read-only users can view tasks
             "crm.tasks.view",
+            // Inventory — read-only sees the catalog
+            "inventory.suppliers.view",
+            "inventory.resources.view",
+            "inventory.calendar.view",
+            "inventory.holds.view",
         },
 
         _ => null

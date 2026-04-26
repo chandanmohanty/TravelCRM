@@ -110,6 +110,24 @@ public static class PermissionCatalog
         items.Add(New("crm", "tasks", "admin", "Manage Task Types", 702,
             "Create / update / delete the tenant's task type catalog."));
 
+        // Inventory — Suppliers / Resources / Calendar / Holds (foundation)
+        items.Add(New("inventory", "suppliers", "view", "View Suppliers", 800,
+            "Read suppliers in the tenant."));
+        items.Add(New("inventory", "suppliers", "manage", "Manage Suppliers", 801,
+            "Create / update / delete suppliers."));
+        items.Add(New("inventory", "resources", "view", "View Resources", 802,
+            "Read inventory resources (hotels, rooms, vehicles, drivers, ...)."));
+        items.Add(New("inventory", "resources", "manage", "Manage Resources", 803,
+            "Create / update / block resources."));
+        items.Add(New("inventory", "calendar", "view", "View Calendar", 804,
+            "Read availability calendars."));
+        items.Add(New("inventory", "calendar", "manage", "Manage Calendar", 805,
+            "Set capacity overrides and block / unblock dates."));
+        items.Add(New("inventory", "holds", "view", "View Holds", 806,
+            "Read soft and confirmed inventory holds (audit)."));
+        items.Add(New("inventory", "holds", "manage", "Manage Holds", 807,
+            "Create / confirm / release / extend holds."));
+
         return items;
     }
 }
