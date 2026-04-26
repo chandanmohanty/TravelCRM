@@ -119,6 +119,17 @@ export const navItems: NavItem[] = [
     route: 'apps/employee',
   },
 
+  // ─── Inventory ───────────────────────────────────────────────────────────
+  {
+    navCap: 'Inventory',
+  },
+  {
+    id: 11,
+    displayName: 'Suppliers',
+    iconName: 'solar:case-line-duotone',
+    route: '/inventory/suppliers',
+  },
+
   // ─── Customers ────────────────────────────────────────────────────────────
   {
     navCap: 'Customers',

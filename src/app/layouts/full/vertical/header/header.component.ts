@@ -272,6 +272,15 @@ export class HeaderComponent {
       subtitle: 'Create new contact',
       link: '/',
     },
+    {
+      id: 11,
+      icon: 'solar:case-line-duotone',
+      color: 'success',
+      title: 'Suppliers',
+      subtitle: 'Hotels, vehicles, guides',
+      link: '/inventory/suppliers',
+      tenantOnly: true,
+    },
   ];
 }
 
