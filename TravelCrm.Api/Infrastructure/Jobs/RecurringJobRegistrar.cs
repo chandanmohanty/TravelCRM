@@ -23,6 +23,11 @@ public static class RecurringJobRegistrar
             recurringJobId: "overdue-tasks-check",
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
             cronExpression: Cron.Daily);
+
+        jobs.AddOrUpdate<HoldExpirySweepJob>(
+            recurringJobId: "hold-expiry-sweep",
+            methodCall:     j => j.ExecuteAsync(CancellationToken.None),
+            cronExpression: Cron.MinuteInterval(5));
     }
 }
 

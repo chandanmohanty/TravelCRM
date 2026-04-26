@@ -108,6 +108,7 @@ builder.Services.AddHttpClient(
 // Reminder Hangfire job — scoped so it gets DI-resolved infrastructure
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.ReminderJob>();
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.OverdueTasksJob>();
+builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.HoldExpirySweepJob>();
 
 // File storage abstraction — resolves per-request from DB-configured active backend
 // (tenant → platform fallback → appsettings local-disk default)
