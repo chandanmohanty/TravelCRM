@@ -22,8 +22,8 @@ A lightweight, fast task management module embedded in the existing TravelCRMPlu
 | `TenantId` | `Guid` | FK → Tenant, required |
 | `Title` | `string` (200) | Required |
 | `Description` | `string?` (4000) | Optional rich text |
-| `Status` | `TaskStatus` (enum, int) | `ToDo = 0`, `InProgress = 1`, `Done = 2` |
-| `Priority` | `TaskPriority` (enum, int) | `Low = 0`, `Medium = 1`, `High = 2`, `Urgent = 3` |
+| `Status` | `TenantTaskStatus` (enum, int) | `ToDo = 0`, `InProgress = 1`, `Done = 2` |
+| `Priority` | `TenantTaskPriority` (enum, int) | `Low = 0`, `Medium = 1`, `High = 2`, `Urgent = 3` |
 | `TaskTypeId` | `Guid?` | FK → `TaskType`, nullable |
 | `AssignedToUserId` | `Guid?` | FK → `ApplicationUser`, nullable |
 | `CreatedByUserId` | `Guid` | FK → `ApplicationUser`, required |
@@ -198,7 +198,7 @@ Computed in `TaskMapper.ToDto()`:
 ```csharp
 IsOverdue = task.DueDate.HasValue
     && task.DueDate.Value < DateTime.UtcNow
-    && task.Status != TaskStatus.Done
+    && task.Status != TenantTaskStatus.Done
 ```
 
 ### `OverdueTasksJob`
@@ -235,15 +235,15 @@ All services inject `HttpClient` and `API_BASE_URL` token. Return `Observable<T>
 ### Angular models (`src/app/models/task.model.ts`)
 
 ```typescript
-export type TaskStatus   = 'ToDo' | 'InProgress' | 'Done';
-export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+export type TenantTaskStatus   = 'ToDo' | 'InProgress' | 'Done';
+export type TenantTaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
 export interface Task {
   id: string;
   title: string;
   description?: string;
-  status: TaskStatus;
-  priority: TaskPriority;
+  status: TenantTaskStatus;
+  priority: TenantTaskPriority;
   taskTypeId?: string;
   taskTypeName?: string;
   taskTypeColor?: string;
@@ -347,7 +347,7 @@ public class OverdueTasksJob(ApplicationDbContext db, INotificationService notif
         var now = DateTime.UtcNow;
         var overdueTasks = await db.TenantTasks
             .Where(t => !t.IsDeleted
-                     && t.Status != TaskStatus.Done
+                     && t.Status != TenantTaskStatus.Done
                      && t.DueDate.HasValue
                      && t.DueDate < now
                      && !t.IsOverdueSent)
@@ -376,7 +376,7 @@ Computed in mapper, no DB column:
 ```csharp
 IsOverdue = task.DueDate.HasValue
           && task.DueDate.Value < DateTime.UtcNow
-          && task.Status != TaskStatus.Done
+          && task.Status != TenantTaskStatus.Done
 ```
 
 ---

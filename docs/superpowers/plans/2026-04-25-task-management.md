@@ -17,8 +17,8 @@
 ### Backend — files to create
 
 ```
-TravelCrm.Api/Domain/Entities/TaskStatus.cs                            (new enum)
-TravelCrm.Api/Domain/Entities/TaskPriority.cs                          (new enum)
+TravelCrm.Api/Domain/Entities/TenantTaskStatus.cs                            (new enum)
+TravelCrm.Api/Domain/Entities/TenantTaskPriority.cs                          (new enum)
 TravelCrm.Api/Domain/Entities/TaskType.cs                              (new entity)
 TravelCrm.Api/Domain/Entities/TenantTask.cs                            (new entity)
 TravelCrm.Api/Domain/Entities/TimeEntry.cs                             (new entity)
@@ -120,20 +120,20 @@ npx ng test --watch=false --browsers=ChromeHeadless
 ## Task 1: Domain Entities and Enums
 
 **Files:**
-- Create: `TravelCrm.Api/Domain/Entities/TaskStatus.cs`
-- Create: `TravelCrm.Api/Domain/Entities/TaskPriority.cs`
+- Create: `TravelCrm.Api/Domain/Entities/TenantTaskStatus.cs`
+- Create: `TravelCrm.Api/Domain/Entities/TenantTaskPriority.cs`
 - Create: `TravelCrm.Api/Domain/Entities/TaskType.cs`
 - Create: `TravelCrm.Api/Domain/Entities/TenantTask.cs`
 - Create: `TravelCrm.Api/Domain/Entities/TimeEntry.cs`
 
 > ⚠️ The C# entity for tasks is **TenantTask**, NOT `Task`, to avoid the name conflict with `System.Threading.Tasks.Task`. The DbSet is `TenantTasks`. Tables in PostgreSQL will be `tenant_tasks`, `task_types`, `time_entries`.
 
-- [ ] **Step 1: Create `TaskStatus.cs`**
+- [ ] **Step 1: Create `TenantTaskStatus.cs`**
 
 ```csharp
 namespace TravelCrm.Api.Domain.Entities;
 
-public enum TaskStatus
+public enum TenantTaskStatus
 {
     ToDo = 0,
     InProgress = 1,
@@ -141,12 +141,12 @@ public enum TaskStatus
 }
 ```
 
-- [ ] **Step 2: Create `TaskPriority.cs`**
+- [ ] **Step 2: Create `TenantTaskPriority.cs`**
 
 ```csharp
 namespace TravelCrm.Api.Domain.Entities;
 
-public enum TaskPriority
+public enum TenantTaskPriority
 {
     Low = 0,
     Medium = 1,
@@ -177,8 +177,8 @@ public sealed class TenantTask : BaseEntity
 {
     public string Title { get; set; } = "";
     public string? Description { get; set; }
-    public TaskStatus Status { get; set; } = TaskStatus.ToDo;
-    public TaskPriority Priority { get; set; } = TaskPriority.Medium;
+    public TenantTaskStatus Status { get; set; } = TenantTaskStatus.ToDo;
+    public TenantTaskPriority Priority { get; set; } = TenantTaskPriority.Medium;
     public Guid? TaskTypeId { get; set; }
     public Guid? AssignedToUserId { get; set; }
     public Guid CreatedByUserId { get; set; }
@@ -217,13 +217,13 @@ public sealed class TimeEntry : BaseEntity
 - [ ] **Step 6: Verify build**
 
 Run: `dotnet build TravelCrm.Api`
-Expected: Build succeeds. (Compiler may warn about `TaskStatus` shadowing `System.Threading.Tasks.TaskStatus` — that's fine; we'll alias on a per-file basis when needed in handlers.)
+Expected: Build succeeds. (Compiler may warn about `TenantTaskStatus` shadowing `System.Threading.Tasks.TenantTaskStatus` — that's fine; we'll alias on a per-file basis when needed in handlers.)
 
 - [ ] **Step 7: Commit**
 
 ```bash
-git add TravelCrm.Api/Domain/Entities/TaskStatus.cs \
-        TravelCrm.Api/Domain/Entities/TaskPriority.cs \
+git add TravelCrm.Api/Domain/Entities/TenantTaskStatus.cs \
+        TravelCrm.Api/Domain/Entities/TenantTaskPriority.cs \
         TravelCrm.Api/Domain/Entities/TaskType.cs \
         TravelCrm.Api/Domain/Entities/TenantTask.cs \
         TravelCrm.Api/Domain/Entities/TimeEntry.cs
@@ -382,7 +382,7 @@ public static class TaskMapper
         var totalMinutes = task.TimeEntries?.Sum(te => te.Minutes) ?? 0;
         var isOverdue = task.DueDate.HasValue
             && task.DueDate.Value < DateTime.UtcNow
-            && task.Status != TaskStatus.Done;
+            && task.Status != TenantTaskStatus.Done;
 
         return new TaskDto(
             task.Id,
@@ -496,19 +496,19 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Mine",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, IsDeleted = false,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Trashed",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, IsDeleted = true,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = otherTenantId, Title = "Other tenant",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, IsDeleted = false,
         });
         await db.SaveChangesAsync();
@@ -531,13 +531,13 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Active",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, IsDeleted = false,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Trashed",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, IsDeleted = true,
         });
         await db.SaveChangesAsync();
@@ -574,12 +574,12 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = parentId, TenantId = tenantId, Title = "Parent",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
         });
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Child",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, ParentTaskId = parentId,
         });
         await db.SaveChangesAsync();
@@ -603,7 +603,7 @@ public class TaskQueryHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = taskId, TenantId = otherTenantId, Title = "Not yours",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
         });
         await db.SaveChangesAsync();
 
@@ -669,11 +669,11 @@ public sealed class ListTasksHandler(
             query = query.Where(t => EF.Functions.ILike(t.Title, $"%{q.Search}%"));
 
         if (!string.IsNullOrWhiteSpace(q.Status)
-            && Enum.TryParse<TaskStatus>(q.Status, ignoreCase: true, out var status))
+            && Enum.TryParse<TenantTaskStatus>(q.Status, ignoreCase: true, out var status))
             query = query.Where(t => t.Status == status);
 
         if (!string.IsNullOrWhiteSpace(q.Priority)
-            && Enum.TryParse<TaskPriority>(q.Priority, ignoreCase: true, out var priority))
+            && Enum.TryParse<TenantTaskPriority>(q.Priority, ignoreCase: true, out var priority))
             query = query.Where(t => t.Priority == priority);
 
         if (q.AssignedToUserId.HasValue)
@@ -835,7 +835,7 @@ public class TaskCommandHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = parentId, TenantId = tenantId, Title = "Parent",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
         });
         await db.SaveChangesAsync();
 
@@ -887,10 +887,10 @@ public sealed class CreateTaskValidator : AbstractValidator<CreateTaskCommand>
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Description).MaximumLength(4000);
         RuleFor(x => x.Status)
-            .Must(s => Enum.TryParse<TaskStatus>(s, ignoreCase: true, out _))
+            .Must(s => Enum.TryParse<TenantTaskStatus>(s, ignoreCase: true, out _))
             .WithMessage("Status must be ToDo, InProgress, or Done");
         RuleFor(x => x.Priority)
-            .Must(p => Enum.TryParse<TaskPriority>(p, ignoreCase: true, out _))
+            .Must(p => Enum.TryParse<TenantTaskPriority>(p, ignoreCase: true, out _))
             .WithMessage("Priority must be Low, Medium, High, or Urgent");
         RuleFor(x => x.EstimatedMinutes)
             .GreaterThan(0).When(x => x.EstimatedMinutes.HasValue);
@@ -928,8 +928,8 @@ public sealed class CreateTaskHandler(
             TenantId = tenantContext.TenantId!.Value,
             Title = cmd.Title,
             Description = cmd.Description,
-            Status = Enum.Parse<TaskStatus>(cmd.Status, ignoreCase: true),
-            Priority = Enum.Parse<TaskPriority>(cmd.Priority, ignoreCase: true),
+            Status = Enum.Parse<TenantTaskStatus>(cmd.Status, ignoreCase: true),
+            Priority = Enum.Parse<TenantTaskPriority>(cmd.Priority, ignoreCase: true),
             TaskTypeId = cmd.TaskTypeId,
             AssignedToUserId = cmd.AssignedToUserId,
             CreatedByUserId = currentUser.Id,
@@ -1004,7 +1004,7 @@ public async Task UpdateTask_ChangesFields_AndPersists()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "Old title",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Low, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Low, CreatedByUserId = user.Id,
     });
     await db.SaveChangesAsync();
 
@@ -1016,8 +1016,8 @@ public async Task UpdateTask_ChangesFields_AndPersists()
     result.IsSuccess.Should().BeTrue();
     var fresh = db.TenantTasks.Find(taskId)!;
     fresh.Title.Should().Be("New title");
-    fresh.Status.Should().Be(TaskStatus.InProgress);
-    fresh.Priority.Should().Be(TaskPriority.High);
+    fresh.Status.Should().Be(TenantTaskStatus.InProgress);
+    fresh.Priority.Should().Be(TenantTaskPriority.High);
     fresh.EstimatedMinutes.Should().Be(60);
 }
 
@@ -1031,7 +1031,7 @@ public async Task UpdateTask_FromOtherTenant_ReturnsNotFound()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = otherTenantId, Title = "Other",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
     });
     await db.SaveChangesAsync();
 
@@ -1054,7 +1054,7 @@ public async Task UpdateTask_NewAssignee_CreatesNotification()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
         CreatedByUserId = user.Id, AssignedToUserId = null,
     });
     await db.SaveChangesAsync();
@@ -1078,7 +1078,7 @@ public async Task UpdateTaskStatus_ChangesStatus_AndNotifies()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
         CreatedByUserId = user.Id, AssignedToUserId = assignee,
     });
     await db.SaveChangesAsync();
@@ -1087,7 +1087,7 @@ public async Task UpdateTaskStatus_ChangesStatus_AndNotifies()
     var result = await handler.Handle(new UpdateTaskStatusCommand(taskId, "Done"), default);
 
     result.IsSuccess.Should().BeTrue();
-    db.TenantTasks.Find(taskId)!.Status.Should().Be(TaskStatus.Done);
+    db.TenantTasks.Find(taskId)!.Status.Should().Be(TenantTaskStatus.Done);
     db.Notifications.Should().Contain(n =>
         n.UserId == assignee && n.Type == "task_status_changed");
 }
@@ -1101,7 +1101,7 @@ public async Task UpdateTaskStatus_InvalidStatus_ReturnsFailure()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
     });
     await db.SaveChangesAsync();
 
@@ -1153,10 +1153,10 @@ public sealed class UpdateTaskValidator : AbstractValidator<UpdateTaskCommand>
         RuleFor(x => x.Title).NotEmpty().MaximumLength(200);
         RuleFor(x => x.Description).MaximumLength(4000);
         RuleFor(x => x.Status)
-            .Must(s => Enum.TryParse<TaskStatus>(s, ignoreCase: true, out _))
+            .Must(s => Enum.TryParse<TenantTaskStatus>(s, ignoreCase: true, out _))
             .WithMessage("Status must be ToDo, InProgress, or Done");
         RuleFor(x => x.Priority)
-            .Must(p => Enum.TryParse<TaskPriority>(p, ignoreCase: true, out _))
+            .Must(p => Enum.TryParse<TenantTaskPriority>(p, ignoreCase: true, out _))
             .WithMessage("Priority must be Low, Medium, High, or Urgent");
         RuleFor(x => x.EstimatedMinutes)
             .GreaterThan(0).When(x => x.EstimatedMinutes.HasValue);
@@ -1193,8 +1193,8 @@ public sealed class UpdateTaskHandler(
 
         task.Title = cmd.Title;
         task.Description = cmd.Description;
-        task.Status = Enum.Parse<TaskStatus>(cmd.Status, ignoreCase: true);
-        task.Priority = Enum.Parse<TaskPriority>(cmd.Priority, ignoreCase: true);
+        task.Status = Enum.Parse<TenantTaskStatus>(cmd.Status, ignoreCase: true);
+        task.Priority = Enum.Parse<TenantTaskPriority>(cmd.Priority, ignoreCase: true);
         task.TaskTypeId = cmd.TaskTypeId;
         task.AssignedToUserId = cmd.AssignedToUserId;
         task.ParentTaskId = cmd.ParentTaskId;
@@ -1203,7 +1203,7 @@ public sealed class UpdateTaskHandler(
 
         // Reset overdue flag if due date moved into future or status flipped to Done
         if (task.IsOverdueSent
-            && (task.Status == TaskStatus.Done
+            && (task.Status == TenantTaskStatus.Done
                 || !task.DueDate.HasValue
                 || task.DueDate.Value >= DateTime.UtcNow))
         {
@@ -1238,7 +1238,7 @@ public sealed class UpdateTaskHandler(
         return Result.Success(TaskMapper.ToDto(task));
     }
 
-    private void EmitStatusChangedNotifications(TenantTask task, TaskStatus previousStatus, Guid actorId, Guid tenantId)
+    private void EmitStatusChangedNotifications(TenantTask task, TenantTaskStatus previousStatus, Guid actorId, Guid tenantId)
     {
         var msg = $"Task '{task.Title}' status changed: {previousStatus} → {task.Status}";
         var recipients = new HashSet<Guid>();
@@ -1286,7 +1286,7 @@ public sealed class UpdateTaskStatusValidator : AbstractValidator<UpdateTaskStat
     {
         RuleFor(x => x.Id).NotEmpty();
         RuleFor(x => x.Status)
-            .Must(s => Enum.TryParse<TaskStatus>(s, ignoreCase: true, out _))
+            .Must(s => Enum.TryParse<TenantTaskStatus>(s, ignoreCase: true, out _))
             .WithMessage("Invalid status");
     }
 }
@@ -1305,7 +1305,7 @@ public sealed class UpdateTaskStatusHandler(
         if (!tenantContext.IsResolved)
             return Result.Failure<TaskDto>("Tenant not resolved");
 
-        if (!Enum.TryParse<TaskStatus>(cmd.Status, ignoreCase: true, out var newStatus))
+        if (!Enum.TryParse<TenantTaskStatus>(cmd.Status, ignoreCase: true, out var newStatus))
             return Result.Failure<TaskDto>("Invalid status value");
 
         var task = await db.TenantTasks
@@ -1320,7 +1320,7 @@ public sealed class UpdateTaskStatusHandler(
             return Result.Success(TaskMapper.ToDto(task));
 
         task.Status = newStatus;
-        if (newStatus == TaskStatus.Done) task.IsOverdueSent = false;
+        if (newStatus == TenantTaskStatus.Done) task.IsOverdueSent = false;
 
         var msg = $"Task '{task.Title}' status changed: {previousStatus} → {newStatus}";
         var recipients = new HashSet<Guid>();
@@ -1386,7 +1386,7 @@ public async Task DeleteTask_SoftDeletes()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
     });
     await db.SaveChangesAsync();
 
@@ -1406,7 +1406,7 @@ public async Task RestoreTask_UnsetsIsDeleted()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = tenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
         CreatedByUserId = user.Id, IsDeleted = true,
     });
     await db.SaveChangesAsync();
@@ -1428,7 +1428,7 @@ public async Task DeleteTask_FromOtherTenant_ReturnsNotFound()
     db.TenantTasks.Add(new TenantTask
     {
         Id = taskId, TenantId = otherTenantId, Title = "T",
-        Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = user.Id,
+        Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.Id,
     });
     await db.SaveChangesAsync();
 
@@ -1775,7 +1775,7 @@ public class TaskTypeHandlersTests
         db.TenantTasks.Add(new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "T",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
             CreatedByUserId = user.Id, TaskTypeId = typeId,
         });
         await db.SaveChangesAsync();
@@ -2106,7 +2106,7 @@ public class TimeEntryHandlersTests
         var t = new TenantTask
         {
             Id = Guid.NewGuid(), TenantId = tenantId, Title = "Parent",
-            Status = TaskStatus.ToDo, Priority = TaskPriority.Medium, CreatedByUserId = userId,
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = userId,
         };
         db.TenantTasks.Add(t);
         db.SaveChanges();
@@ -2438,7 +2438,7 @@ public sealed class OverdueTasksJob(
 
         var overdueTasks = await db.TenantTasks
             .Where(t => !t.IsDeleted
-                     && t.Status != TaskStatus.Done
+                     && t.Status != TenantTaskStatus.Done
                      && t.DueDate.HasValue
                      && t.DueDate < now
                      && !t.IsOverdueSent)
@@ -2536,15 +2536,15 @@ git commit -m "feat(tasks): add OverdueTasksJob daily Hangfire recurring job"
 - [ ] **Step 1: Create `task.model.ts`**
 
 ```typescript
-export type TaskStatus = 'ToDo' | 'InProgress' | 'Done';
-export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
+export type TenantTaskStatus = 'ToDo' | 'InProgress' | 'Done';
+export type TenantTaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent';
 
 export interface TaskDto {
   id: string;
   title: string;
   description?: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
+  status: TenantTaskStatus;
+  priority: TenantTaskPriority;
   taskTypeId?: string | null;
   taskTypeName?: string | null;
   taskTypeColor?: string | null;
@@ -2566,8 +2566,8 @@ export interface TaskDto {
 export interface TaskWriteBody {
   title: string;
   description?: string | null;
-  status: TaskStatus;
-  priority: TaskPriority;
+  status: TenantTaskStatus;
+  priority: TenantTaskPriority;
   taskTypeId?: string | null;
   assignedToUserId?: string | null;
   parentTaskId?: string | null;
@@ -3047,7 +3047,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TasksService } from 'src/app/core/services/tasks.service';
-import { TaskDto, TaskStatus } from 'src/app/models/task.model';
+import { TaskDto, TenantTaskStatus } from 'src/app/models/task.model';
 import { inject } from '@angular/core';
 
 @Component({
@@ -3126,7 +3126,7 @@ export class TaskKanbanComponent implements OnInit {
   private router = inject(Router);
 
   loading = signal(true);
-  columns: { status: TaskStatus; label: string; tasks: TaskDto[] }[] = [
+  columns: { status: TenantTaskStatus; label: string; tasks: TaskDto[] }[] = [
     { status: 'ToDo', label: 'To Do', tasks: [] },
     { status: 'InProgress', label: 'In Progress', tasks: [] },
     { status: 'Done', label: 'Done', tasks: [] },
@@ -3153,7 +3153,7 @@ export class TaskKanbanComponent implements OnInit {
       return;
     }
     const task = event.previousContainer.data[event.previousIndex];
-    const newStatus = event.container.id as TaskStatus;
+    const newStatus = event.container.id as TenantTaskStatus;
     transferArrayItem(event.previousContainer.data, event.container.data,
                       event.previousIndex, event.currentIndex);
     this.tasksApi.updateStatus(task.id, newStatus).subscribe({
