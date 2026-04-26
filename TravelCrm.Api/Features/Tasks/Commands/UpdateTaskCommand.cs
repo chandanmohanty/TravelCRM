@@ -87,54 +87,14 @@ public sealed class UpdateTaskHandler(
         }
 
         // Notify new assignee on assignment change
-        if (cmd.AssignedToUserId.HasValue
-            && cmd.AssignedToUserId != previousAssignee
-            && cmd.AssignedToUserId.Value != currentUser.UserId)
-        {
-            db.Notifications.Add(new Notification
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantContext.TenantId!.Value,
-                UserId = cmd.AssignedToUserId.Value,
-                Type = "task_assigned",
-                Title = "Task assigned to you",
-                Message = $"You've been assigned: {task.Title}",
-                IsRead = false,
-                ActionUrl = $"/apps/task/{task.Id}",
-            });
-        }
+        if (cmd.AssignedToUserId.HasValue && cmd.AssignedToUserId != previousAssignee)
+            TaskNotifications.EmitAssignedNotification(db, task, currentUser.UserId, tenantContext.TenantId!.Value);
 
         // Notify on status change (creator + assignee)
         if (task.Status != previousStatus)
-        {
-            EmitStatusChangedNotifications(task, previousStatus, currentUser.UserId, tenantContext.TenantId!.Value);
-        }
+            TaskNotifications.EmitStatusChangedNotifications(db, task, previousStatus, currentUser.UserId, tenantContext.TenantId!.Value);
 
         await db.SaveChangesAsync(ct);
         return Result.Success(TaskMapper.ToDto(task));
-    }
-
-    private void EmitStatusChangedNotifications(TenantTask task, TenantTaskStatus previousStatus, Guid actorId, Guid tenantId)
-    {
-        var msg = $"Task '{task.Title}' status changed: {previousStatus} → {task.Status}";
-        var recipients = new HashSet<Guid>();
-        if (task.CreatedByUserId != actorId) recipients.Add(task.CreatedByUserId);
-        if (task.AssignedToUserId.HasValue && task.AssignedToUserId.Value != actorId)
-            recipients.Add(task.AssignedToUserId.Value);
-
-        foreach (var userId in recipients)
-        {
-            db.Notifications.Add(new Notification
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantId,
-                UserId = userId,
-                Type = "task_status_changed",
-                Title = "Task status changed",
-                Message = msg,
-                IsRead = false,
-                ActionUrl = $"/apps/task/{task.Id}",
-            });
-        }
     }
 }

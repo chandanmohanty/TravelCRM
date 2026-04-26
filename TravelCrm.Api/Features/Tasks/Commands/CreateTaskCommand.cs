@@ -84,20 +84,7 @@ public sealed class CreateTaskHandler(
         db.TenantTasks.Add(task);
 
         // Notify assignee if it's not the creator
-        if (cmd.AssignedToUserId.HasValue && cmd.AssignedToUserId.Value != currentUser.UserId)
-        {
-            db.Notifications.Add(new Notification
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantContext.TenantId!.Value,
-                UserId = cmd.AssignedToUserId.Value,
-                Type = "task_assigned",
-                Title = "Task assigned to you",
-                Message = $"You've been assigned: {cmd.Title}",
-                IsRead = false,
-                ActionUrl = $"/apps/task/{task.Id}",
-            });
-        }
+        TaskNotifications.EmitAssignedNotification(db, task, currentUser.UserId, tenantContext.TenantId!.Value);
 
         await db.SaveChangesAsync(ct);
 

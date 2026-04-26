@@ -53,26 +53,7 @@ public sealed class UpdateTaskStatusHandler(
         task.Status = newStatus;
         if (newStatus == TenantTaskStatus.Done) task.IsOverdueSent = false;
 
-        var msg = $"Task '{task.Title}' status changed: {previousStatus} → {newStatus}";
-        var recipients = new HashSet<Guid>();
-        if (task.CreatedByUserId != currentUser.UserId) recipients.Add(task.CreatedByUserId);
-        if (task.AssignedToUserId.HasValue && task.AssignedToUserId.Value != currentUser.UserId)
-            recipients.Add(task.AssignedToUserId.Value);
-
-        foreach (var userId in recipients)
-        {
-            db.Notifications.Add(new Notification
-            {
-                Id = Guid.NewGuid(),
-                TenantId = tenantContext.TenantId!.Value,
-                UserId = userId,
-                Type = "task_status_changed",
-                Title = "Task status changed",
-                Message = msg,
-                IsRead = false,
-                ActionUrl = $"/apps/task/{task.Id}",
-            });
-        }
+        TaskNotifications.EmitStatusChangedNotifications(db, task, previousStatus, currentUser.UserId, tenantContext.TenantId!.Value);
 
         await db.SaveChangesAsync(ct);
         return Result.Success(TaskMapper.ToDto(task));
