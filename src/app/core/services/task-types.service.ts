@@ -8,7 +8,7 @@ import { TaskTypeDto, TaskTypeWriteBody } from '../../models/task.model';
 export class TaskTypesService {
   private readonly http = inject(HttpClient);
   private readonly base = inject(API_BASE_URL);
-  private readonly url  = `${this.base}/crm/task-types`;
+  private readonly url  = `${this.base}/api/crm/task-types`;
 
   list(): Observable<TaskTypeDto[]> {
     return this.http.get<TaskTypeDto[]>(this.url);

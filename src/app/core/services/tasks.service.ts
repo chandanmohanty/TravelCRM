@@ -17,7 +17,7 @@ export interface ListTasksParams {
 export class TasksService {
   private readonly http = inject(HttpClient);
   private readonly base = inject(API_BASE_URL);
-  private readonly url  = `${this.base}/crm/tasks`;
+  private readonly url  = `${this.base}/api/crm/tasks`;
 
   list(params?: ListTasksParams): Observable<TaskDto[]> {
     const query: Record<string, string> = {};

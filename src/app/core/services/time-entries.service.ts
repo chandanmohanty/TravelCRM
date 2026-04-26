@@ -10,7 +10,7 @@ export class TimeEntriesService {
   private readonly base = inject(API_BASE_URL);
 
   private taskUrl(taskId: string) {
-    return `${this.base}/crm/tasks/${taskId}/time-entries`;
+    return `${this.base}/api/crm/tasks/${taskId}/time-entries`;
   }
 
   list(taskId: string): Observable<TimeEntryDto[]> {
