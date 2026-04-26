@@ -92,6 +92,13 @@ import { TaskDto } from 'src/app/models/task.model';
         </mat-card>
       </div>
 
+      @if (errorMessage()) {
+        <div class="error-banner">
+          <i-tabler name="alert-circle" class="icon-sm"></i-tabler>
+          {{ errorMessage() }}
+        </div>
+      }
+
       @if (loading()) {
         <div class="spinner-wrap"><mat-spinner diameter="36"></mat-spinner></div>
       } @else {
@@ -209,6 +216,12 @@ import { TaskDto } from 'src/app/models/task.model';
 
     .spinner-wrap { display: flex; justify-content: center; padding: 48px; }
 
+    .error-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+      padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
+    }
+
     .task-sections { display: block; }
     .task-section { margin-bottom: 12px; border-radius: 8px !important; }
     .section-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 10px; }
@@ -263,6 +276,7 @@ export class TaskListComponent implements OnInit {
   loading = signal(true);
   allTasks = signal<TaskDto[]>([]);
   quickAddTitle = '';
+  errorMessage = signal<string | null>(null);
 
   todo = computed(() => this.allTasks().filter(t => t.status === 'ToDo' && !t.isDeleted));
   inProgress = computed(() => this.allTasks().filter(t => t.status === 'InProgress' && !t.isDeleted));
@@ -279,8 +293,8 @@ export class TaskListComponent implements OnInit {
     this.tasksApi
       .list({ includeDeleted: true })
       .subscribe({
-        next: (res) => { this.allTasks.set(res); this.loading.set(false); },
-        error: () => this.loading.set(false),
+        next: (res) => { this.allTasks.set(res); this.loading.set(false); this.errorMessage.set(null); },
+        error: (err) => { this.handleApiError(err, 'Failed to load tasks'); this.loading.set(false); },
       });
   }
 
@@ -289,17 +303,41 @@ export class TaskListComponent implements OnInit {
   quickAdd(): void {
     const title = this.quickAddTitle.trim();
     if (!title) return;
+    this.errorMessage.set(null);
     this.tasksApi
       .create({ title, status: 'ToDo', priority: 'Medium' })
-      .subscribe(() => { this.quickAddTitle = ''; this.reload(); });
+      .subscribe({
+        next: () => { this.quickAddTitle = ''; this.reload(); },
+        error: (err) => this.handleApiError(err, 'Failed to add task'),
+      });
   }
 
   deleteTask(t: TaskDto): void {
     if (!confirm(`Delete task "${t.title}"?`)) return;
-    this.tasksApi.delete(t.id).subscribe(() => this.reload());
+    this.errorMessage.set(null);
+    this.tasksApi.delete(t.id).subscribe({
+      next: () => this.reload(),
+      error: (err) => this.handleApiError(err, 'Failed to delete task'),
+    });
   }
 
   restoreTask(t: TaskDto): void {
-    this.tasksApi.restore(t.id).subscribe(() => this.reload());
+    this.errorMessage.set(null);
+    this.tasksApi.restore(t.id).subscribe({
+      next: () => this.reload(),
+      error: (err) => this.handleApiError(err, 'Failed to restore task'),
+    });
+  }
+
+  private handleApiError(err: any, fallback: string): void {
+    if (err?.status === 401) {
+      this.errorMessage.set('Your session expired. Please log out and sign in again.');
+    } else if (err?.status === 403) {
+      this.errorMessage.set(
+        'You don\'t have permission to manage tasks. If your role was just updated, sign out and sign back in to refresh your access.'
+      );
+    } else {
+      this.errorMessage.set(err?.error?.error ?? fallback);
+    }
   }
 }
