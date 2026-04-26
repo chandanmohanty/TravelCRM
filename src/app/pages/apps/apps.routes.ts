@@ -115,6 +115,12 @@ export const AppsRoutes: Routes = [
         data: { title: 'New Task', urls: [{ title: 'Apps' }, { title: 'Tasks', url: '/apps/task' }, { title: 'New' }] },
       },
       {
+        path: 'task/:id/details',
+        loadComponent: () =>
+          import('./task/task-detail/task-detail.component').then((m) => m.TaskDetailComponent),
+        data: { title: 'Task Detail', urls: [{ title: 'Apps' }, { title: 'Tasks', url: '/apps/task' }, { title: 'Detail' }] },
+      },
+      {
         path: 'task/:id',
         loadComponent: () =>
           import('./task/task-form/task-form.component').then((m) => m.TaskFormComponent),

@@ -11,6 +11,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
+import { TablerIconsModule } from 'angular-tabler-icons';
 import { TasksService } from 'src/app/core/services/tasks.service';
 import { TaskTypesService } from 'src/app/core/services/task-types.service';
 import { TaskTypeDto, TaskWriteBody } from 'src/app/models/task.model';
@@ -23,32 +24,46 @@ import { TaskTypeDto, TaskWriteBody } from 'src/app/models/task.model';
     CommonModule, ReactiveFormsModule, RouterModule,
     MatButtonModule, MatCardModule, MatDatepickerModule, MatNativeDateModule,
     MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule,
-    MatSelectModule,
+    MatSelectModule, TablerIconsModule,
   ],
   template: `
-    <div class="p-24">
-      <mat-card>
-        <mat-card-content>
+    <div class="crm-page">
+      <div class="page-header">
+        <div class="page-title">
           <h2>{{ isEdit() ? 'Edit Task' : 'New Task' }}</h2>
-          @if (loading()) {
-            <div class="text-center p-32"><mat-spinner diameter="32"></mat-spinner></div>
-          } @else {
-            <form [formGroup]="form" (ngSubmit)="save()" class="d-flex flex-column gap-16">
-              <mat-form-field appearance="outline">
+          <span class="subtitle">
+            {{ isEdit() ? 'Update task details, status, or priority' : 'Create a task and assign it to your team' }}
+          </span>
+        </div>
+        <div class="page-actions">
+          <button mat-stroked-button (click)="cancel()">
+            <i-tabler name="arrow-left" class="icon-sm mr-1"></i-tabler> Back
+          </button>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <div class="spinner-wrap"><mat-spinner diameter="36"></mat-spinner></div>
+      } @else {
+        <mat-card class="form-card">
+          <mat-card-content>
+            <form [formGroup]="form" (ngSubmit)="save()" class="task-form">
+              <mat-form-field appearance="outline" class="full">
                 <mat-label>Title</mat-label>
-                <input matInput formControlName="title" maxlength="200" />
+                <input matInput formControlName="title" maxlength="200" placeholder="What needs doing?" />
                 @if (form.controls.title.touched && form.controls.title.invalid) {
                   <mat-error>Title is required</mat-error>
                 }
               </mat-form-field>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="full">
                 <mat-label>Description</mat-label>
-                <textarea matInput formControlName="description" rows="4" maxlength="4000"></textarea>
+                <textarea matInput formControlName="description" rows="4" maxlength="4000"
+                          placeholder="Add context, links, or acceptance criteria…"></textarea>
               </mat-form-field>
 
-              <div class="d-flex gap-16">
-                <mat-form-field appearance="outline" class="flex-grow-1">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
                   <mat-label>Status</mat-label>
                   <mat-select formControlName="status">
                     <mat-option value="ToDo">To Do</mat-option>
@@ -56,7 +71,7 @@ import { TaskTypeDto, TaskWriteBody } from 'src/app/models/task.model';
                     <mat-option value="Done">Done</mat-option>
                   </mat-select>
                 </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-grow-1">
+                <mat-form-field appearance="outline">
                   <mat-label>Priority</mat-label>
                   <mat-select formControlName="priority">
                     <mat-option value="Low">Low</mat-option>
@@ -67,17 +82,17 @@ import { TaskTypeDto, TaskWriteBody } from 'src/app/models/task.model';
                 </mat-form-field>
               </div>
 
-              <div class="d-flex gap-16">
-                <mat-form-field appearance="outline" class="flex-grow-1">
+              <div class="form-row">
+                <mat-form-field appearance="outline">
                   <mat-label>Type</mat-label>
                   <mat-select formControlName="taskTypeId">
-                    <mat-option [value]="null">None</mat-option>
+                    <mat-option [value]="null">— None —</mat-option>
                     @for (t of taskTypes(); track t.id) {
                       <mat-option [value]="t.id">{{ t.name }}</mat-option>
                     }
                   </mat-select>
                 </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-grow-1">
+                <mat-form-field appearance="outline">
                   <mat-label>Due Date</mat-label>
                   <input matInput [matDatepicker]="picker" formControlName="dueDate" />
                   <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
@@ -85,29 +100,77 @@ import { TaskTypeDto, TaskWriteBody } from 'src/app/models/task.model';
                 </mat-form-field>
               </div>
 
-              <mat-form-field appearance="outline">
+              <mat-form-field appearance="outline" class="estimate">
                 <mat-label>Estimated Minutes</mat-label>
-                <input matInput type="number" min="1" formControlName="estimatedMinutes" />
+                <input matInput type="number" min="1" formControlName="estimatedMinutes"
+                       placeholder="e.g. 60" />
+                <span matSuffix class="suffix-hint">min</span>
               </mat-form-field>
 
               @if (errorMessage()) {
-                <div class="text-danger">{{ errorMessage() }}</div>
+                <div class="error-banner">
+                  <i-tabler name="alert-circle" class="icon-sm"></i-tabler>
+                  {{ errorMessage() }}
+                </div>
               }
 
-              <div class="d-flex gap-8">
+              <div class="form-actions">
+                <button mat-button type="button" (click)="cancel()">Cancel</button>
                 <button mat-flat-button color="primary" type="submit"
                         [disabled]="form.invalid || saving()">
-                  {{ isEdit() ? 'Update' : 'Create' }}
+                  @if (saving()) {
+                    <mat-spinner diameter="16" class="btn-spinner"></mat-spinner>
+                  } @else {
+                    <i-tabler [name]="isEdit() ? 'check' : 'plus'" class="icon-sm mr-1"></i-tabler>
+                  }
+                  {{ isEdit() ? 'Save Changes' : 'Create Task' }}
                 </button>
-                <button mat-button type="button" (click)="cancel()">Cancel</button>
               </div>
             </form>
-          }
-        </mat-card-content>
-      </mat-card>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
   `,
-  styles: [`.text-danger { color: #ef4444; }`],
+  styles: [`
+    .crm-page { padding: 24px; }
+    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
+    .page-title h2 { margin: 0; font-size: 22px; font-weight: 600; }
+    .page-title .subtitle { color: #6c757d; font-size: 14px; }
+    .page-actions { display: flex; gap: 8px; }
+    .spinner-wrap { display: flex; justify-content: center; padding: 48px; }
+
+    .form-card { max-width: 760px; }
+    .form-card mat-card-content { padding: 24px; }
+
+    .task-form {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+    .task-form .full { width: 100%; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .estimate { max-width: 240px; }
+    .suffix-hint { color: #94a3b8; font-size: 12px; margin-right: 4px; }
+
+    .error-banner {
+      display: flex; align-items: center; gap: 8px;
+      background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
+      padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;
+    }
+
+    .form-actions {
+      display: flex; justify-content: flex-end; gap: 8px;
+      margin-top: 8px; padding-top: 16px; border-top: 1px solid #f1f5f9;
+    }
+    .btn-spinner { display: inline-block; margin-right: 8px; }
+    .mr-1 { margin-right: 4px; }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .page-header { flex-direction: column; gap: 16px; }
+    }
+  `],
 })
 export class TaskFormComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -137,7 +200,6 @@ export class TaskFormComponent implements OnInit {
   ngOnInit(): void {
     this.typesApi.list().subscribe(t => this.taskTypes.set(t));
 
-    // Capture optional parentId from query params (when adding subtask)
     const parentId = this.route.snapshot.queryParamMap.get('parentId');
     if (parentId) this.parentTaskId.set(parentId);
 
