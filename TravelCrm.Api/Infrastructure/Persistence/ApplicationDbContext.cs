@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Domain.Entities;
+using TravelCrm.Api.Domain.Entities.Inventory;
 using TravelCrm.Api.Infrastructure.Identity;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Security;
@@ -49,6 +50,15 @@ public sealed class ApplicationDbContext(
     public DbSet<TenantTask> TenantTasks => Set<TenantTask>();
     public DbSet<TaskType> TaskTypes => Set<TaskType>();
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+
+    // ── Inventory ──
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<Resource> Resources => Set<Resource>();
+    public DbSet<PoolResource> PoolResources => Set<PoolResource>();
+    public DbSet<AssetResource> AssetResources => Set<AssetResource>();
+    public DbSet<ResourceCalendar> ResourceCalendar => Set<ResourceCalendar>();
+    public DbSet<ResourceHold> ResourceHolds => Set<ResourceHold>();
+    public DbSet<InventorySettings> InventorySettings => Set<InventorySettings>();
 
     private Guid? GetCurrentTenantId() => tenantContext.TenantId;
 
@@ -449,6 +459,86 @@ public sealed class ApplicationDbContext(
         {
             b.Property(t => t.Notes).HasMaxLength(500);
             b.HasIndex(t => new { t.TenantId, t.TaskId });
+        });
+
+        // ── Inventory ────────────────────────────────────────────────────────────
+
+        builder.Entity<Supplier>(b =>
+        {
+            b.Property(s => s.Name).IsRequired().HasMaxLength(200);
+            b.Property(s => s.SupplierType).HasConversion<int>();
+            b.Property(s => s.ContactName).HasMaxLength(200);
+            b.Property(s => s.ContactEmail).HasMaxLength(200);
+            b.Property(s => s.ContactPhone).HasMaxLength(50);
+            b.Property(s => s.Address).HasMaxLength(1000);
+            b.HasIndex(s => new { s.TenantId, s.Name }).IsUnique();
+            b.HasIndex(s => new { s.TenantId, s.SupplierType });
+        });
+
+        builder.Entity<Resource>(b =>
+        {
+            b.ToTable("resources");
+            b.HasDiscriminator(r => r.Kind)
+                .HasValue<PoolResource>(ResourceKind.Pool)
+                .HasValue<AssetResource>(ResourceKind.Asset);
+
+            b.Property(r => r.Type).IsRequired().HasMaxLength(50);
+            b.Property(r => r.Name).IsRequired().HasMaxLength(200);
+            b.Property(r => r.Status).HasConversion<int>();
+            b.Property(r => r.Metadata).HasColumnType("jsonb");
+
+            b.HasOne(r => r.Supplier)
+                .WithMany()
+                .HasForeignKey(r => r.SupplierId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            b.HasIndex(r => new { r.TenantId, r.Type, r.Status });
+            b.HasIndex(r => new { r.TenantId, r.SupplierId });
+        });
+
+        builder.Entity<PoolResource>(b =>
+        {
+            b.Property(p => p.DefaultCapacity).IsRequired();
+        });
+
+        builder.Entity<AssetResource>(b =>
+        {
+            b.Property(a => a.AssetCode).HasMaxLength(100);
+        });
+
+        builder.Entity<ResourceCalendar>(b =>
+        {
+            b.Property(c => c.Slot).HasConversion<int?>();
+            b.Property(c => c.Notes).HasMaxLength(500);
+            b.Property(c => c.RowVersion).IsRowVersion();
+
+            b.HasOne(c => c.Resource)
+                .WithMany()
+                .HasForeignKey(c => c.ResourceId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            b.HasIndex(c => new { c.TenantId, c.ResourceId, c.Date, c.Slot }).IsUnique();
+        });
+
+        builder.Entity<ResourceHold>(b =>
+        {
+            b.Property(h => h.Slot).HasConversion<int?>();
+            b.Property(h => h.Status).HasConversion<int>();
+            b.Property(h => h.BookingRef).HasMaxLength(100);
+            b.Property(h => h.Notes).HasMaxLength(500);
+
+            b.HasOne(h => h.Resource)
+                .WithMany()
+                .HasForeignKey(h => h.ResourceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(h => new { h.TenantId, h.ResourceId, h.StartDate, h.EndDate });
+            b.HasIndex(h => new { h.Status, h.ExpiresAt });
+        });
+
+        builder.Entity<InventorySettings>(b =>
+        {
+            b.HasIndex(s => s.TenantId).IsUnique();
         });
     }
 
