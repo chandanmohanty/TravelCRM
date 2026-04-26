@@ -6,16 +6,12 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
-import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSelectModule } from '@angular/material/select';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TasksService } from 'src/app/core/services/tasks.service';
-import { TaskTypesService } from 'src/app/core/services/task-types.service';
-import { TaskDto, TaskTypeDto } from 'src/app/models/task.model';
+import { TaskDto } from 'src/app/models/task.model';
 
 @Component({
   selector: 'app-task-list',
@@ -24,8 +20,8 @@ import { TaskDto, TaskTypeDto } from 'src/app/models/task.model';
   imports: [
     CommonModule, FormsModule, RouterModule,
     MatButtonModule, MatCardModule, MatChipsModule, MatExpansionModule,
-    MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule,
-    MatSelectModule, MatTooltipModule, TablerIconsModule,
+    MatIconModule, MatProgressSpinnerModule,
+    MatTooltipModule, TablerIconsModule,
   ],
   template: `
     <div class="crm-page">
@@ -95,46 +91,6 @@ import { TaskDto, TaskTypeDto } from 'src/app/models/task.model';
           </mat-card-content>
         </mat-card>
       </div>
-
-      <mat-card class="filter-card">
-        <mat-card-content>
-          <div class="filter-row">
-            <mat-form-field appearance="outline" class="filter-search">
-              <mat-label>Search</mat-label>
-              <input matInput [(ngModel)]="searchText" (ngModelChange)="reload()" placeholder="Search by title…" />
-              <i-tabler matSuffix name="search" class="icon-sm"></i-tabler>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="filter-select">
-              <mat-label>Priority</mat-label>
-              <mat-select [(ngModel)]="priorityFilter" (ngModelChange)="reload()">
-                <mat-option [value]="null">All</mat-option>
-                <mat-option value="Low">Low</mat-option>
-                <mat-option value="Medium">Medium</mat-option>
-                <mat-option value="High">High</mat-option>
-                <mat-option value="Urgent">Urgent</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="filter-select">
-              <mat-label>Status</mat-label>
-              <mat-select [(ngModel)]="statusFilter" (ngModelChange)="reload()">
-                <mat-option [value]="null">All</mat-option>
-                <mat-option value="ToDo">To Do</mat-option>
-                <mat-option value="InProgress">In Progress</mat-option>
-                <mat-option value="Done">Done</mat-option>
-              </mat-select>
-            </mat-form-field>
-            <mat-form-field appearance="outline" class="filter-select">
-              <mat-label>Type</mat-label>
-              <mat-select [(ngModel)]="taskTypeFilter" (ngModelChange)="reload()">
-                <mat-option [value]="null">All</mat-option>
-                @for (t of taskTypes(); track t.id) {
-                  <mat-option [value]="t.id">{{ t.name }}</mat-option>
-                }
-              </mat-select>
-            </mat-form-field>
-          </div>
-        </mat-card-content>
-      </mat-card>
 
       @if (loading()) {
         <div class="spinner-wrap"><mat-spinner diameter="36"></mat-spinner></div>
@@ -251,12 +207,6 @@ import { TaskDto, TaskTypeDto } from 'src/app/models/task.model';
     .kpi-value { font-size: 24px; font-weight: 700; }
     .kpi-label { font-size: 13px; color: #6c757d; }
 
-    .filter-card { margin-bottom: 20px; }
-    .filter-card mat-card-content { padding: 16px; }
-    .filter-row { display: flex; gap: 16px; flex-wrap: wrap; }
-    .filter-search { flex: 1; min-width: 240px; }
-    .filter-select { width: 180px; }
-
     .spinner-wrap { display: flex; justify-content: center; padding: 48px; }
 
     .task-sections { display: block; }
@@ -302,24 +252,16 @@ import { TaskDto, TaskTypeDto } from 'src/app/models/task.model';
     @media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
     @media (max-width: 600px) {
       .kpi-grid { grid-template-columns: 1fr; }
-      .filter-select { width: 100%; }
       .page-header { flex-direction: column; gap: 16px; }
     }
   `],
 })
 export class TaskListComponent implements OnInit {
   private tasksApi = inject(TasksService);
-  private typesApi = inject(TaskTypesService);
   private router = inject(Router);
 
   loading = signal(true);
   allTasks = signal<TaskDto[]>([]);
-  taskTypes = signal<TaskTypeDto[]>([]);
-
-  searchText = '';
-  priorityFilter: string | null = null;
-  statusFilter: string | null = null;
-  taskTypeFilter: string | null = null;
   quickAddTitle = '';
 
   todo = computed(() => this.allTasks().filter(t => t.status === 'ToDo' && !t.isDeleted));
@@ -329,20 +271,13 @@ export class TaskListComponent implements OnInit {
   overdueCount = computed(() => this.allTasks().filter(t => t.isOverdue && !t.isDeleted).length);
 
   ngOnInit(): void {
-    this.typesApi.list().subscribe(t => this.taskTypes.set(t));
     this.reload();
   }
 
   reload(): void {
     this.loading.set(true);
     this.tasksApi
-      .list({
-        search: this.searchText || undefined,
-        priority: this.priorityFilter || undefined,
-        status: this.statusFilter || undefined,
-        taskTypeId: this.taskTypeFilter || undefined,
-        includeDeleted: true,
-      })
+      .list({ includeDeleted: true })
       .subscribe({
         next: (res) => { this.allTasks.set(res); this.loading.set(false); },
         error: () => this.loading.set(false),
