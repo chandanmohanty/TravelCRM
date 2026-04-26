@@ -106,31 +106,31 @@ export const AppsRoutes: Routes = [
         path: 'task',
         loadComponent: () =>
           import('./task/task-list/task-list.component').then((m) => m.TaskListComponent),
-        data: { title: 'Tasks', urls: [{ title: 'Apps' }, { title: 'Tasks' }] },
+        data: { title: 'Tasks' },
       },
       {
         path: 'task/new',
         loadComponent: () =>
           import('./task/task-form/task-form.component').then((m) => m.TaskFormComponent),
-        data: { title: 'New Task', urls: [{ title: 'Apps' }, { title: 'Tasks', url: '/apps/task' }, { title: 'New' }] },
+        data: { title: 'New Task' },
       },
       {
         path: 'task/:id/details',
         loadComponent: () =>
           import('./task/task-detail/task-detail.component').then((m) => m.TaskDetailComponent),
-        data: { title: 'Task Detail', urls: [{ title: 'Apps' }, { title: 'Tasks', url: '/apps/task' }, { title: 'Detail' }] },
+        data: { title: 'Task Detail' },
       },
       {
         path: 'task/:id',
         loadComponent: () =>
           import('./task/task-form/task-form.component').then((m) => m.TaskFormComponent),
-        data: { title: 'Edit Task', urls: [{ title: 'Apps' }, { title: 'Tasks', url: '/apps/task' }, { title: 'Edit' }] },
+        data: { title: 'Edit Task' },
       },
       {
         path: 'kanban',
         loadComponent: () =>
           import('./task/task-kanban/task-kanban.component').then((m) => m.TaskKanbanComponent),
-        data: { title: 'Kanban Board', urls: [{ title: 'Apps' }, { title: 'Kanban' }] },
+        data: { title: 'Kanban Board' },
       },
       {
         path: 'tickets',
