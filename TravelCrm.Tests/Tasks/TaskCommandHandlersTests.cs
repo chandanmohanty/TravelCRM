@@ -191,4 +191,66 @@ public class TaskCommandHandlersTests
         result.IsSuccess.Should().BeFalse();
         result.Error.Should().Contain("status");
     }
+
+    [Fact]
+    public async Task DeleteTask_SoftDeletes()
+    {
+        var (db, _, tenantId) = TestDb.New();
+        var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
+        var taskId = Guid.NewGuid();
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = taskId, TenantId = tenantId, Title = "T",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new DeleteTaskHandler(db, new FakeTenantContext(tenantId), user);
+        var result = await handler.Handle(new DeleteTaskCommand(taskId), default);
+
+        result.IsSuccess.Should().BeTrue();
+        db.TenantTasks.Find(taskId)!.IsDeleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RestoreTask_UnsetsIsDeleted()
+    {
+        var (db, _, tenantId) = TestDb.New();
+        var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
+        var taskId = Guid.NewGuid();
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = taskId, TenantId = tenantId, Title = "T",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium,
+            CreatedByUserId = user.UserId, IsDeleted = true,
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new RestoreTaskHandler(db, new FakeTenantContext(tenantId), user);
+        var result = await handler.Handle(new RestoreTaskCommand(taskId), default);
+
+        result.IsSuccess.Should().BeTrue();
+        db.TenantTasks.Find(taskId)!.IsDeleted.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task DeleteTask_FromOtherTenant_ReturnsNotFound()
+    {
+        var (db, _, tenantId) = TestDb.New();
+        var otherTenantId = Guid.NewGuid();
+        var user = new FakeCurrentUser(Guid.NewGuid(), hasPermission: true);
+        var taskId = Guid.NewGuid();
+        db.TenantTasks.Add(new TenantTask
+        {
+            Id = taskId, TenantId = otherTenantId, Title = "T",
+            Status = TenantTaskStatus.ToDo, Priority = TenantTaskPriority.Medium, CreatedByUserId = user.UserId,
+        });
+        await db.SaveChangesAsync();
+
+        var handler = new DeleteTaskHandler(db, new FakeTenantContext(tenantId), user);
+        var result = await handler.Handle(new DeleteTaskCommand(taskId), default);
+
+        result.IsSuccess.Should().BeFalse();
+        result.Error.Should().Contain("not found");
+    }
 }
