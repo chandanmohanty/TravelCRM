@@ -23,12 +23,16 @@ public sealed record TaskDto(
     bool IsDeleted,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    List<TaskDto> Children
+    IReadOnlyList<TaskDto> Children
 );
 
 public static class TaskMapper
 {
-    public static TaskDto ToDto(TenantTask task, string? assignedToUserName = null, bool includeChildren = false)
+    public static TaskDto ToDto(
+        TenantTask task,
+        string? assignedToUserName = null,
+        string? createdByUserName = null,
+        bool includeChildren = false)
     {
         var totalMinutes = task.TimeEntries?.Sum(te => te.Minutes) ?? 0;
         var isOverdue = task.DueDate.HasValue
@@ -47,7 +51,7 @@ public static class TaskMapper
             task.AssignedToUserId,
             assignedToUserName,
             task.CreatedByUserId,
-            task.CreatedBy?.ToString() ?? "",
+            createdByUserName ?? task.CreatedBy?.ToString() ?? "",
             task.ParentTaskId,
             task.DueDate,
             task.EstimatedMinutes,

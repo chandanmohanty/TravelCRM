@@ -15,5 +15,5 @@ public sealed record TimeEntryDto(
 public static class TimeEntryMapper
 {
     public static TimeEntryDto ToDto(TimeEntry te, string? userName = null) =>
-        new(te.Id, te.TaskId, te.UserId, userName ?? "", te.Minutes, te.Notes, te.LoggedAt);
+        new(te.Id, te.TaskId, te.UserId, userName ?? te.CreatedBy?.ToString() ?? "", te.Minutes, te.Notes, te.LoggedAt);
 }
