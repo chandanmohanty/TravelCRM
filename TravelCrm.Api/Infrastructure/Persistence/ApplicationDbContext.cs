@@ -51,7 +51,7 @@ public sealed class ApplicationDbContext(
     public DbSet<TaskType> TaskTypes => Set<TaskType>();
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
 
-    // ── Inventory ──
+    // ── Inventory ─────────────────────────────────────────────────────────────
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<Resource> Resources => Set<Resource>();
     public DbSet<PoolResource> PoolResources => Set<PoolResource>();
@@ -517,7 +517,15 @@ public sealed class ApplicationDbContext(
                 .HasForeignKey(c => c.ResourceId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            b.HasIndex(c => new { c.TenantId, c.ResourceId, c.Date, c.Slot }).IsUnique();
+            // Whole-day buckets: PostgreSQL treats NULL != NULL in unique indexes, so we
+            // need a partial index that excludes the null-slot rows from the multi-column
+            // uniqueness and a separate index that covers them.
+            b.HasIndex(c => new { c.TenantId, c.ResourceId, c.Date, c.Slot })
+                .IsUnique()
+                .HasFilter("slot IS NOT NULL");
+            b.HasIndex(c => new { c.TenantId, c.ResourceId, c.Date })
+                .IsUnique()
+                .HasFilter("slot IS NULL");
         });
 
         builder.Entity<ResourceHold>(b =>
@@ -538,6 +546,7 @@ public sealed class ApplicationDbContext(
 
         builder.Entity<InventorySettings>(b =>
         {
+            b.Property(s => s.HoldTtlHours).HasDefaultValue(24);
             b.HasIndex(s => s.TenantId).IsUnique();
         });
     }
