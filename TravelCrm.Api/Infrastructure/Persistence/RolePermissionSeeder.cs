@@ -112,6 +112,8 @@ public static class RolePermissionSeeder
             "inventory.resources.view", "inventory.resources.manage",
             "inventory.calendar.view",  "inventory.calendar.manage",
             "inventory.holds.view",     "inventory.holds.manage",
+            // Tenant settings (HoldTtlHours override) — admin-only
+            "inventory.tenant_settings.manage",
         },
 
         "manager" => new HashSet<string>
