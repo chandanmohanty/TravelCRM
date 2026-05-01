@@ -1,3 +1,5 @@
+using Xunit;
+
 namespace TravelCrm.Tests.Inventory;
 
 /// <summary>
@@ -18,7 +20,11 @@ namespace TravelCrm.Tests.Inventory;
 /// production PostgreSQL traffic. Re-introduce this test if oversell incidents
 /// are observed in production.
 /// </summary>
-internal static class HoldConcurrencyTests
+public class HoldConcurrencyTests
 {
-    // Intentionally empty — placeholder for the deferred PG-only race test.
+    [Fact(Skip = "PG-only race test; deferred for v1. Requires INVENTORY_PG_TEST_CONN env var and PG instance.")]
+    public void TwoParallelHolds_OnSameResourceAndDay_OneWinsAndOneRejects()
+    {
+        // See class summary — implementation deferred.
+    }
 }

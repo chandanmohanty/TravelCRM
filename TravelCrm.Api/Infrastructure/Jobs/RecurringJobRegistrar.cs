@@ -24,10 +24,12 @@ public static class RecurringJobRegistrar
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
             cronExpression: Cron.Daily);
 
+        // "*/5 * * * *" = every 5 minutes. Cron.MinuteInterval is obsolete in
+        // newer Hangfire versions; use the cron literal directly.
         jobs.AddOrUpdate<HoldExpirySweepJob>(
             recurringJobId: "hold-expiry-sweep",
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
-            cronExpression: Cron.MinuteInterval(5));
+            cronExpression: "*/5 * * * *");
     }
 }
 
