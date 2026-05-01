@@ -121,7 +121,7 @@ public sealed class CreateHoldHandler(
 
     private async Task<int> GetHoldTtlHoursAsync(Guid tenantId, CancellationToken ct)
     {
-        var settings = await db.InventorySettings
+        var settings = await db.TenantSettings
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.TenantId == tenantId, ct);
         return settings?.HoldTtlHours ?? 24;

@@ -58,7 +58,7 @@ public sealed class ApplicationDbContext(
     public DbSet<AssetResource> AssetResources => Set<AssetResource>();
     public DbSet<ResourceCalendar> ResourceCalendar => Set<ResourceCalendar>();
     public DbSet<ResourceHold> ResourceHolds => Set<ResourceHold>();
-    public DbSet<InventorySettings> InventorySettings => Set<InventorySettings>();
+    public DbSet<TenantSettings> TenantSettings => Set<TenantSettings>();
 
     private Guid? GetCurrentTenantId() => tenantContext.TenantId;
 
@@ -544,8 +544,9 @@ public sealed class ApplicationDbContext(
             b.HasIndex(h => new { h.Status, h.ExpiresAt });
         });
 
-        builder.Entity<InventorySettings>(b =>
+        builder.Entity<TenantSettings>(b =>
         {
+            b.ToTable("tenant_settings");
             b.Property(s => s.HoldTtlHours).HasDefaultValue(24);
             b.HasIndex(s => s.TenantId).IsUnique();
         });

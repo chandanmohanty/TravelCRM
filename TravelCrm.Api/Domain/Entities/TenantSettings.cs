@@ -1,10 +1,11 @@
 namespace TravelCrm.Api.Domain.Entities;
 
 /// <summary>
-/// Tenant-scoped Inventory module settings (one row per tenant, lazy-created).
-/// Currently only holds HoldTtlHours; future inventory features add their own columns here.
+/// Shared tenant-wide settings table (one row per tenant, lazy-created).
+/// All Inventory sub-projects (Hotel, Vehicle, Driver, Guide) extend this table
+/// with their own columns rather than creating separate settings tables.
 /// </summary>
-public sealed class InventorySettings : IAuditableEntity
+public sealed class TenantSettings : IAuditableEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }

@@ -43,7 +43,7 @@ public sealed class ExtendHoldHandler(
         if (hold.ExtensionCount >= MaxExtensions)
             return Result.Failure<HoldDto>($"Extension limit reached (max {MaxExtensions})");
 
-        var settings = await db.InventorySettings
+        var settings = await db.TenantSettings
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.TenantId == tenantContext.TenantId, ct);
         var ttlHours = settings?.HoldTtlHours ?? 24;
