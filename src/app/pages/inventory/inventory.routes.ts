@@ -19,5 +19,11 @@ export const InventoryRoutes: Routes = [
       import('./suppliers/supplier-form/supplier-form.component').then((m) => m.SupplierFormComponent),
     data: { title: 'Edit Supplier' },
   },
+  {
+    path: 'settings',
+    loadComponent: () =>
+      import('./tenant-settings/tenant-settings.component').then((m) => m.TenantSettingsComponent),
+    data: { title: 'Inventory Settings' },
+  },
   { path: '', redirectTo: 'suppliers', pathMatch: 'full' },
 ];

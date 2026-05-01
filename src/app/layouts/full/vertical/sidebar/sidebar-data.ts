@@ -129,6 +129,12 @@ export const navItems: NavItem[] = [
     iconName: 'solar:case-line-duotone',
     route: '/inventory/suppliers',
   },
+  {
+    id: 12,
+    displayName: 'Settings',
+    iconName: 'solar:settings-line-duotone',
+    route: '/inventory/settings',
+  },
 
   // ─── Customers ────────────────────────────────────────────────────────────
   {

@@ -29,3 +29,11 @@ export interface SupplierWriteBody {
 export interface SupplierUpdateBody extends SupplierWriteBody {
   isActive: boolean;
 }
+
+export interface TenantSettingsDto {
+  holdTtlHours: number;
+}
+
+export interface TenantSettingsUpdateBody {
+  holdTtlHours: number;
+}
