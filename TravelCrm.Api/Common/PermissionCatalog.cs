@@ -128,6 +128,10 @@ public static class PermissionCatalog
         items.Add(New("inventory", "holds", "manage", "Manage Holds", 807,
             "Create / confirm / release / extend holds."));
 
+        // Inventory — Tenant Settings (admin-only, sensitive TTL override)
+        items.Add(New("inventory", "tenant_settings", "manage", "Manage Inventory Tenant Settings", 808,
+            "View and update per-tenant inventory settings such as HoldTtlHours."));
+
         return items;
     }
 }
