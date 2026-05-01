@@ -210,8 +210,8 @@ export class SupplierFormComponent implements OnInit {
             contactEmail: s.contactEmail ?? null,
             contactPhone: s.contactPhone ?? null,
             address: s.address ?? null,
-            contractValidFrom: s.contractValidFrom ? new Date(s.contractValidFrom) : null,
-            contractValidTo: s.contractValidTo ? new Date(s.contractValidTo) : null,
+            contractValidFrom: s.contractValidFrom ? this.fromIsoDate(s.contractValidFrom) : null,
+            contractValidTo: s.contractValidTo ? this.fromIsoDate(s.contractValidTo) : null,
             isActive: s.isActive,
           });
           this.loading.set(false);
@@ -264,5 +264,17 @@ export class SupplierFormComponent implements OnInit {
     const mm = String(d.getMonth() + 1).padStart(2, '0');
     const dd = String(d.getDate()).padStart(2, '0');
     return `${yyyy}-${mm}-${dd}`;
+  }
+
+  /**
+   * Parse a yyyy-MM-dd string into a local-time Date.
+   *
+   * `new Date("2026-05-01")` parses as UTC midnight, which renders as the
+   * previous day in any timezone behind UTC (Americas). Splitting and using
+   * the (year, monthIndex, day) constructor anchors at local midnight instead.
+   */
+  private fromIsoDate(iso: string): Date {
+    const [y, m, d] = iso.substring(0, 10).split('-').map(Number);
+    return new Date(y, m - 1, d);
   }
 }

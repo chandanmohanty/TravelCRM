@@ -203,4 +203,24 @@ public class AvailabilityCalculationTests
 
         result.IsAvailable.Should().BeTrue();
     }
+
+    [Fact]
+    public void Pool_SameDayStartEnd_TreatsAsSingleDay()
+    {
+        // Single-day hold: StartDate == EndDate. Must consume capacity for that
+        // one date and not silently succeed because the loop's day count is 1.
+        var r = Pool(2);
+        var holds = new[]
+        {
+            new ResourceHold { ResourceId = r.Id, StartDate = D(5, 1), EndDate = D(5, 1),
+                               Quantity = 2, Status = ResourceHoldStatus.Held,
+                               ExpiresAt = DateTime.UtcNow.AddHours(1) },
+        };
+        var result = AvailabilityCalculator.Check(
+            r, Array.Empty<ResourceCalendar>(), holds,
+            D(5, 1), D(5, 1), null, requestedQuantity: 1);
+
+        result.IsAvailable.Should().BeFalse();
+        result.FailingDate.Should().Be(D(5, 1));
+    }
 }
