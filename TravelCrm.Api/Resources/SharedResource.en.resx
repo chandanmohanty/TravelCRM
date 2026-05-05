@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="LOGIN_FAILED" xml:space="preserve">
+    <value>Invalid email or password</value>
+  </data>
+  <data name="AUTH_REQUIRED" xml:space="preserve">
+    <value>Authentication is required</value>
+  </data>
+  <data name="FORBIDDEN" xml:space="preserve">
+    <value>You do not have permission to perform this action</value>
+  </data>
+  <data name="INVALID_INPUT" xml:space="preserve">
+    <value>The provided input is invalid</value>
+  </data>
+  <data name="USER_NOT_FOUND" xml:space="preserve">
+    <value>User not found</value>
+  </data>
+  <data name="TENANT_NOT_FOUND" xml:space="preserve">
+    <value>Tenant not found</value>
+  </data>
+  <data name="LEAD_CREATED" xml:space="preserve">
+    <value>Lead created successfully</value>
+  </data>
+  <data name="LEAD_UPDATED" xml:space="preserve">
+    <value>Lead updated successfully</value>
+  </data>
+  <data name="LEAD_DELETED" xml:space="preserve">
+    <value>Lead deleted successfully</value>
+  </data>
+  <data name="SETTINGS_UPDATED" xml:space="preserve">
+    <value>Settings updated successfully</value>
+  </data>
+  <data name="LOCALE_UPDATED" xml:space="preserve">
+    <value>Locale preferences updated</value>
+  </data>
+  <data name="WELCOME" xml:space="preserve">
+    <value>Welcome</value>
+  </data>
+</root>
