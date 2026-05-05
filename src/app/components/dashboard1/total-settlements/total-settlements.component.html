@@ -1,0 +1,43 @@
+<mat-card class="cardWithShadow bg-light-primary">
+  <mat-card-content>
+    <div class="d-flex align-items-center m-b-24 gap-16">
+      <div
+        class="rounded d-flex align-items-center justify-content-center bg-white icon-48"
+      >
+        <i class="iconify f-s-24 text-primary" data-icon="solar:box-linear"></i>
+      </div>
+      <div>
+        <span class="f-s-14">Total settlements</span>
+        <h5 class="f-w-700 f-s-22 m-t-4">$122,580</h5>
+      </div>
+    </div>
+    <!-- chart -->
+    <div style="height: 278px">
+      <apx-chart
+        [series]="totalsettlementsChart.series"
+        [labels]="totalsettlementsChart.labels"
+        [chart]="totalsettlementsChart.chart"
+        [legend]="totalsettlementsChart.legend"
+        [dataLabels]="totalsettlementsChart.dataLabels"
+        [stroke]="totalsettlementsChart.stroke"
+        [xaxis]="totalsettlementsChart.xaxis"
+        [yaxis]="totalsettlementsChart.yaxis"
+        [tooltip]="totalsettlementsChart.tooltip"
+        [grid]="totalsettlementsChart.grid"
+        [markers]="totalsettlementsChart.markers"
+        [colors]="totalsettlementsChart.colors"
+      ></apx-chart>
+    </div>
+
+    <div class="row m-t-30 m-b-8 p-t-10">
+      <div class="col-sm-6 text-center">
+        <span class="lh-base f-s-14">Total balance</span>
+        <h5 class="f-w-700 f-s-22 lh-md m-t-6">$122,580</h5>
+      </div>
+      <div class="col-sm-6 text-center">
+        <span class="lh-base f-s-14">Withdrawals</span>
+        <h5 class="f-w-700 f-s-22 lh-md m-t-6">$31,640</h5>
+      </div>
+    </div>
+  </mat-card-content>
+</mat-card>

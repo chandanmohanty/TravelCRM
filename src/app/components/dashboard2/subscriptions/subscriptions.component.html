@@ -1,0 +1,34 @@
+<mat-card class="shadow-none bg-light-error overflow-hidden">
+  <mat-card-content>
+    <div class="d-flex align-items-center justify-content-between">
+      <div>
+        <h4 class="p-b-4 f-s-15 f-w-600">Subscriptions</h4>
+        <h5 class="m-t-4 f-w-600 f-s-24 d-flex align-items-center">
+          78,298
+          <div class="f-w-600 m-l-12 f-s-14">-12%</div>
+        </h5>
+      </div>
+      <div
+        class="bg-white rounded icon-48 d-flex align-items-center justify-content-center m-l-auto"
+      >
+        <i
+          class="iconify f-s-24 d-flex text-error"
+          data-icon="solar:layers-linear"
+        ></i>
+      </div>
+    </div>
+
+    <div class="m-t-16">
+      <apx-chart
+        [series]="subscriptionChart.series"
+        [chart]="subscriptionChart.chart"
+        [colors]="subscriptionChart.colors"
+        [dataLabels]="subscriptionChart.dataLabels"
+        [legend]="subscriptionChart.legend"
+        [tooltip]="subscriptionChart.tooltip"
+        [plotOptions]="subscriptionChart.plotOptions"
+        class="rounded-bars"
+      ></apx-chart>
+    </div>
+  </mat-card-content>
+</mat-card>
