@@ -1,0 +1,68 @@
+<div class="portfolio-page">
+  <div class="banner-portfolio bg-extra-light p-y-56">
+    <div class="container">
+      <div class="d-flex justify-content-between flex-wrap align-items-center height-row">
+        <h2 class="section-sub-title f-s-44 lh-normal">Explore Our Latest Works</h2>
+        <div class="d-flex align-items-center gap-6 breadcrumb">
+          <a [routerLink]="'/front-pages/homepage'"
+            class="f-s-14 text-uppercase text-decoration-none f-w-700">MatDash</a>
+          <i-tabler name="chevron-right" class="icon-18 d-flex"></i-tabler>
+          <a [routerLink]="'/front-pages/portfolio'"
+            class="f-s-14 text-uppercase text-primary text-decoration-none f-w-700">
+            Portfolio
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-list p-y-48 p-x-0">
+    <div class="container">
+      <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap m-b-24">
+        <div class="d-flex align-items-center gap-8 m-b-10">
+          <h5 class="f-w-500 f-s-20">Portfolio</h5>
+          <div class="p-x-6 p-y-2 rounded-pill bg-secondary text-white">
+            <div class="f-s-14 lh-sm">{{ filteredCount }} </div>
+          </div>
+        </div>
+
+        <!-- Search bar pushed to the right -->
+        <mat-form-field appearance="outline" class="search-bar-style hide-hint">
+          <mat-icon matPrefix>search</mat-icon>
+          <input matInput placeholder="Search Photos" [(ngModel)]="searchText" (input)="onSearchChange()" />
+        </mat-form-field>
+      </div>
+      <div class="row">
+        @for(productcard of filteredCardImgs; track productcard.id) {
+        <div class="col-sm-6 col-lg-4">
+          <mat-card class="cardWithShadow productcard overflow-hidden b-1 rounded">
+            <a routerLink="/widgets/cards">
+              <img src="{{ productcard.imgSrc }}" alt="imgSrc" class="w-100 object-cover" height="220" mat-card-image />
+            </a>
+            <mat-card-content class="p-b-24 p-t-12 position-relative">
+              <mat-card-title class="mat-headline-2 f-s-16 m-b-4">
+                <div class="d-flex align-items-center justify-content-between">
+                  <!-- Left Side: Text Content -->
+                  <div>
+                    <h6 class="f-s-16 lh-sm f-w-600">{{ productcard.title }}</h6>
+                    <p class="f-s-12 f-w-400 m-y-0">{{ productcard.date }}</p>
+                  </div>
+
+                  <!-- Right Side: Icon -->
+                  <button mat-icon-button aria-label="Example icon button with a vertical three dot icon">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                </div>
+              </mat-card-title>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <app-footer></app-footer>
+  </div>
+</div>

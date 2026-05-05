@@ -1,0 +1,132 @@
+<div class="card-slider-content">
+  <div class="container">
+    <div class="row justify-content-between row-content m-b-48">
+      <div class="col-md-5 m-b-48">
+        <h2 class="m-b-24 f-s-44 section-sub-title lh-base">
+          Words from customers.
+        </h2>
+        <p class="f-s-18">Pellentesque varius semper odio non pretium.</p>
+      </div>
+
+      <!--new-->
+      <div class="col-md-6">
+        <div class="right-side-content position-relative cursor-pointer">
+          <div class="slider-wrapper overflow-hidden">
+            <div class="slider-track d-flex" [style.transform]="'translateX(-' + currentSlide * 100 + '%)'">
+              @for (testimonial of testimonials; track testimonial.id) {
+              <div class="testimonial-slide">
+                <mat-card class="cardWithShadow shadow-none">
+                  <mat-card-content class="p-0">
+                    <p class="m-b-32 lh-normal m-t-0 f-s-20">
+                      {{ testimonial.subtext }}
+                    </p>
+                    <div class="d-flex align-items-center gap-16 justify-content-between">
+                      <div class="d-flex align-items-center gap-16">
+                        <img [src]="testimonial.imgSrc" alt="profile" class="rounded-circle" width="56" height="56" />
+                        <div>
+                          <h6 class="f-s-18 lh-normal m-b-4">
+                            {{ testimonial.name }}
+                          </h6>
+                          <p class="m-0 f-s-16">
+                            CEO &amp; Head of Comp Inc
+                          </p>
+                        </div>
+                      </div>
+                      <span class="icon-48 bg-primary rounded-circle d-flex align-items-center justify-content-center">
+                        <img src="assets/images/front-end/icon-quotes.svg" alt="quote" />
+                      </span>
+                    </div>
+                  </mat-card-content>
+                </mat-card>
+              </div>
+              }
+            </div>
+          </div>
+
+          <!-- Dots Navigation -->
+
+          <div class="dots d-flex align-items-center justify-content-center gap-8 m-t-16">
+            @for (testimonial of testimonials; track testimonial.id; let i =
+            $index) {
+            <span class="dot cursor-pointer" [ngClass]="{ 'active-dot': currentSlide === i }"
+              (click)="goToSlide(i)"></span>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!--end-->
+    </div>
+    <mat-divider></mat-divider>
+    <div class="d-flex align-items-center justify-content-center flex-wrap gap-48 p-t-48 flex-wrap">
+      @for (logo of brandLogos; track logo) {
+      <a href="javascript:void(0)">
+        <img [src]="logo" alt="logo" />
+      </a>
+      }
+    </div>
+    <div class="slider-content spacing-top">
+      <div class="demo-slider overflow-hidden d-flex m-y-0">
+        <div class="row flex-nowrap overflow-auto">
+          @for (followercard of followercardsFirst; track followercard.title)
+          {
+          <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            <mat-card class="cardWithShadow demo-slide rounded-8 d-flex align-items-center justify-content-center"
+              [ngClass]="followercard.bg_color">
+              <mat-card-content class="w-100 d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center gap-8">
+                  <i-tabler [name]="followercard.icon" class="icon-24" [ngClass]="followercard.text_color"></i-tabler>
+                  <h6 class="f-w-500 f-s-14" [ngClass]="followercard.text_color">
+                    {{ followercard.title }}
+                  </h6>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          }
+        </div>
+      </div>
+      <div class="demo-slider overflow-hidden d-flex m-y-0">
+        <div class="row flex-nowrap overflow-auto">
+          @for (followercard of followercardsSecond; track followercard.title)
+          {
+          <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            <mat-card class="cardWithShadow demo-slide-two rounded-8 d-flex align-items-center justify-content-center"
+              [ngClass]="followercard.bg_color">
+              <mat-card-content class="w-100 d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center gap-8">
+                  <i-tabler [name]="followercard.icon" class="icon-24" [ngClass]="followercard.text_color"></i-tabler>
+                  <h6 class="f-w-500 f-s-14" [ngClass]="followercard.text_color">
+                    {{ followercard.title }}
+                  </h6>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+
+          }
+        </div>
+      </div>
+      <div class="demo-slider overflow-hidden d-flex m-y-0">
+        <div class="row flex-nowrap overflow-auto">
+          @for (followercard of followercardsThird; track followercard.title)
+          {
+          <div class="col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            <mat-card class="cardWithShadow demo-slide rounded-8 d-flex align-items-center justify-content-center p-0"
+              [ngClass]="followercard.bg_color">
+              <mat-card-content class="w-100 d-flex align-items-center justify-content-center">
+                <div class="d-flex align-items-center justify-content-center gap-8">
+                  <i-tabler [name]="followercard.icon" class="icon-24" [ngClass]="followercard.text_color"></i-tabler>
+                  <h6 class="f-w-500 f-s-14" [ngClass]="followercard.text_color">
+                    {{ followercard.title }}
+                  </h6>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,222 @@
+<div class="about-page">
+
+  <div class="banner-about bg-extra-light spacing-top-bottom">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6">
+          <h2 class="m-b-24 f-s-44 lh-normal section-sub-title">
+            Get to know MatDash
+            <span class="f-w-400">Dashboard Template</span>
+          </h2>
+          <div class="d-flex align-items-start gap-16 btns">
+            <button [routerLink]="['/authentication/side-register']" mat-flat-button>
+              Create an Account
+            </button>
+            <button mat-stroked-button>
+              View Open Positions
+            </button>
+          </div>
+        </div>
+        <div class="col-lg-6 m-t-30">
+          <p class="f-s-16 lh-normal m-0">
+            Do you need a highly customizable and developer friendly premium
+            Angular admin template packed with numerous features?
+            <span class="f-w-600">MatDash Angular Admin </span>template
+            has everything you need. This Angular based admin template is
+            designed in accordance with industry standards and best practices to
+            provide you.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="setup-process spacing-top p-b-48">
+    <div class="container">
+      <h2 class="section-sub-title f-s-44 lh-normal m-b-32 text-center">The hassle-free setup process</h2>
+      <div class="row">
+        @for(stat of support;track stat){
+        <div class="col-lg-3 col-sm-6">
+          <mat-card class="" [ngStyle]="{
+              'background-color': stat.bg_color.startsWith('--')
+                ? 'var(' + stat.bg_color + ')'
+                : stat.bg_color
+            }" [ngClass]="
+              !stat.bg_color.startsWith('--') ? 'bg-light-' + stat.bg_color : ''
+            ">
+            <mat-card-content>
+              <mat-card class="d-flex align-items-center justify-content-center icon-48 m-b-16">
+                <i-tabler [name]="stat.icon" class="icon-24" [ngClass]="stat.color"></i-tabler>
+              </mat-card>
+              <h4 class="f-s-22 m-b-16 f-w-600 lh-normal">{{ stat.label }}</h4>
+              <p class="f-s-14 m-y-0">{{ stat.description }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="every-number spacing-top-bottom">
+    <div class="container">
+      <div class="row">
+        <div class="col-md-5 m-b-30">
+          <h2 class="section-sub-title f-s-44 lh-normal">
+            A unique story in every number
+          </h2>
+        </div>
+        <div class="col-md-7">
+          <div class="d-flex align-items-center justify-content-between flex-wrap flex-shrink-0 gap-30 flex-wrap">
+            @for (history of records; track history) {
+            <div class="d-flex flex-col gap-16">
+              <h2 class="f-w-400 text-primary f-s-64 lh-base section-sub-title">{{ history.title }}</h2>
+              <p class="m-0 f-s-14">{{ history.subtitle }}</p>
+            </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="meet-our-team-sec bg-dark-200 spacing-top">
+    <app-images [hideToolbar]="hideToolbar"></app-images>
+  </div>
+
+  <div class="testimonial-sec card-slider spacing-top">
+    <app-card-slider></app-card-slider>
+  </div>
+
+  <div class="pricing spacing-top-bottom">
+    <app-price-page></app-price-page>
+  </div>
+
+  <div class="question spacing-bottom">
+    <div class="container">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <h2 class="text-center f-s-44 section-sub-title lh-normal m-b-48">
+            Frequently asked questions
+          </h2>
+          <mat-accordion class="accordion">
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  What is included with my purchase?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  Are there any recurring fees?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  Can I use the template on multiple project?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  Can I customize the admin dashboard template to match my
+                  brand?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  Are there any restrictions on using the template?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+            <mat-expansion-panel class="expansion m-b-16 shadow-none rounded b-1">
+              <mat-expansion-panel-header>
+                <mat-panel-title class="f-s-18">
+                  How can I get support after purchase?
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <p class="description">
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
+                eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut
+                enim ad minim veniam, quis nostrud exercitation ullamco laboris
+                nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor
+                in reprehenderit in voluptate velit esse cillum dolore eu fugiat
+                nulla pariatur. Excepteur sint occaecat cupidatat non proident,
+                sunt in culpa qui officia deserunt mollit anim id est laborum.
+              </p>
+            </mat-expansion-panel>
+          </mat-accordion>
+          <div class="d-flex align-items-center justify-content-center m-t-48 p-t-10">
+            <p class="m-0 f-s-14 f-w-600 text-center rounded p-y-4 p-x-8 border-dash-content">
+              Still have a question?
+              <a [routerLink]="'invite/eMzE8F6Wqs'" class="anchar-tag">Ask to discord</a>
+              or
+              <a href="https://support.wrappixel.com/" target="_blank" rel="noopener noreferrer"
+                class="anchar-tag">submit a ticket</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <app-footer></app-footer>
+  </div>
+</div>

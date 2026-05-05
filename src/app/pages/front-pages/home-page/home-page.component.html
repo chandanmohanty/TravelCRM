@@ -1,0 +1,139 @@
+<div class="home-page">
+  <mat-sidenav-container class="bg-white">
+    <mat-sidenav-content>
+      @if(hideCloserBtn){
+
+      <mat-toolbar class="bg-dark-200 d-flex justify-content-between align-items-center position-relative toolbar">
+        <div class="text-center text-white f-s-14 f-w-500 flex-grow-1">
+          <span class="text-white bg-secondary m-x-12 f-s-12 p-x-8 p-y-4 rounded-7">New</span>
+          Frontend Pages Included!
+        </div>
+
+        <button mat-icon-button aria-label="Close" class="text-light ms-auto z-1" (click)="hideCloser()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-toolbar>
+
+      }
+
+      <mat-toolbar class="topbar front-topbar topbar-xl m-auto bg-extra-light p-y-8"
+        [ngClass]="{ 'fixed-topbar': isTopbarFixed }">
+        <div class="container full-width p-xs-6 p-x-15">
+          <div class="d-flex align-items-center justify-content-between w-100">
+            <div class="branding p-0">
+              <app-branding></app-branding>
+            </div>
+
+            <div class="navigation-tab d-none d-lg-flex justify-content-between toolBarContent">
+
+              <button mat-button class="m-x-8 f-s-15 f-w-600 nav-item" [routerLink]="['/front-pages/about']"
+                [class.selected]="isActiveRoute('about')">
+                About Us
+              </button>
+              <button mat-button class="m-x-8 f-s-14 f-w-600 nav-item" [class.selected]="isActiveRoute('blog')"
+                [routerLink]="['/front-pages/blog']">
+                Blogs
+              </button>
+              <button mat-button class="m-x-8 f-s-15 f-w-600 nav-item" [routerLink]="['/front-pages/portfolio']"
+                [class.selected]="isActiveRoute('portfolio')">
+                Portfolio
+                <span class="bg-light-primary text-primary rounded-7 f-w-600 p-x-8 p-y-4 f-s-12 m-l-4">
+                  New
+                </span>
+              </button>
+              <button mat-button class="m-x-8 f-s-15 f-w-600 nav-item" [class.selected]="isActiveRoute('dashboard')"
+                [routerLink]="['/dashboards/dashboard1']">
+                Dashboard
+              </button>
+
+              <button mat-button class="m-x-8 f-s-15 f-w-600 nav-item" [class.selected]="isActiveRoute('pricing')"
+                [routerLink]="['/front-pages/pricing']">
+                Pricing
+              </button>
+
+              <button mat-button class="m-x-8 f-s-15 f-w-600 nav-item" [class.selected]="isActiveRoute('contact')"
+                [routerLink]="['/front-pages/contact']">
+                Contact
+              </button>
+
+            </div>
+            <div class="d-none d-lg-flex">
+              <button mat-flat-button color="primary" [routerLink]="['/authentication/login']">
+                Log In
+              </button>
+            </div>
+
+            <button mat-icon-button (click)="filterNavRight.toggle()" class="d-flex d-lg-none">
+              <i-tabler name="menu-2" class="icon-24 d-flex"></i-tabler>
+            </button>
+          </div>
+        </div>
+      </mat-toolbar>
+
+
+
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+    </mat-sidenav-content>
+    <mat-sidenav #filterNavRight mode="over" position="end" class="filter-sidebar mobile-sidebar">
+      <div>
+        <div class="d-flex align-items-center justify-content-between p-x-20 p-y-15">
+          <div class="branding p-0">
+            <app-branding></app-branding>
+          </div>
+          <button mat-mini-fab aria-label="Example icon button with a heart icon" (click)="filterNavRight.toggle()">
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+
+        <mat-list role="list">
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark" [routerLink]="['/front-pages/about']"
+              [class.selected]="isActiveRoute('about')">
+              About Us
+            </button></mat-list-item>
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark" [class.selected]="isActiveRoute('blogs')"
+              [routerLink]="['/front-pages/blog']">
+              Blogs
+            </button></mat-list-item>
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark" [routerLink]="['/front-pages/portfolio']"
+              [class.selected]="isActiveRoute('portfolio')">
+              Portfolio
+              <span class="bg-light-primary text-primary rounded f-w-600 p-6 p-y-4 f-s-12">
+                New
+              </span>
+            </button></mat-list-item>
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark" [class.selected]="isActiveRoute('dashboard')"
+              [routerLink]="['/dashboards/dashboard1']">
+              Dashboard
+            </button>
+          </mat-list-item>
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark" [class.selected]="isActiveRoute('pricing')"
+              [routerLink]="['/front-pages/pricing']">
+              Pricing
+            </button>
+          </mat-list-item>
+          <mat-list-item role="listitem">
+            <button mat-button class="text-dark " [class.selected]="isActiveRoute('contact')"
+              [routerLink]="['/front-pages/contact']">
+              Contact
+            </button></mat-list-item>
+          <mat-list-item role="listitem" class="w-100">
+            <a mat-flat-button color="primary" class="w-100" [routerLink]="'/authentication/login'">Get
+              Started</a></mat-list-item>
+        </mat-list>
+      </div>
+    </mat-sidenav>
+  </mat-sidenav-container>
+  @if(showBackToTop){
+  <div class="back-to-top bg-primary rounded-circle d-flex align-items-center justify-content-center shadow icon-54 cursor-pointer"
+    (click)="scrollToTop()">
+    <i-tabler name="arrow-up" class="icon-24 text-white"></i-tabler>
+  </div>
+  }
+</div>

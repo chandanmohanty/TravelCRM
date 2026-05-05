@@ -1,0 +1,77 @@
+<div class="blog-page">
+  <div class="banner-blog bg-extra-light p-y-56">
+    <div class="container">
+      <div class="d-flex justify-content-between flex-wrap align-items-center height-row">
+        <h2 class="section-sub-title f-s-44 lh-normal">Our most recent articles</h2>
+        <div class="d-flex align-items-center gap-6 breadcrumb">
+          <a [routerLink]="'/front-pages/homepage'" class="f-s-14 text-uppercase text-decoration-none f-w-700">MatDash</a>
+          <i-tabler name="chevron-right" class="icon-18 d-flex"></i-tabler>
+          <a [routerLink]="'/front-pages/blog'" class="f-s-14 text-uppercase text-primary text-decoration-none f-w-700">
+            Blog posts
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cards-list bg-extra-light p-b-48">
+    <div class="container">
+      <div class="row">
+        <!--new-->
+        @for(blogPost of blogService.getBlog(); track blogPost.user) {
+        <!-- ----------------------------------------------------------------- -->
+        <!-- If Feature Blog is available -->
+        <!-- ----------------------------------------------------------------- -->
+        @if(blogPost.featuredPost) {
+        }
+
+        <!-- ----------------------------------------------------------------- -->
+        <!-- Else Simple Blog is available -->
+        <!-- ----------------------------------------------------------------- -->
+        @else {
+        <div class="col-sm-6 col-lg-4">
+          <mat-card class="cardWithShadow position-relative cursor-pointer blog-card"
+            (click)="getBlogDetails(blogPost)">
+            <img mat-card-image src="{{ blogPost.imgSrc }}" alt="Photo of a Shiba Inu" />
+            <div class="card-overlay h-100 d-flex align-items-end justify-content-end">
+              <span class="f-s-12 f-w-600 bg-white rounded-pill p-x-8 m-r-16">{{
+                blogPost.time
+                }}</span>
+            </div>
+
+            <mat-card-content>
+              <div class="user-category">
+                <img src="{{ blogPost.user }}" class="rounded-circle" width="40" />
+              </div>
+              <mat-card-title class="mat-headline-6 m-t-15">
+                <div class="d-flex m-b-20">
+                  <p class="rounded-pill f-s-12 m-0 p-y-0 p-x-10 bg-light">
+                    Web Development
+                  </p>
+                </div>
+                {{ blogPost.title }}
+              </mat-card-title>
+              <div class="d-flex align-items-center justify-content-center m-t-24">
+                <div class="d-flex align-items-center gap-12">
+                  <span class="f-s-14 d-flex align-items-center gap-4"><i-tabler name="eye"
+                      class="icon-18"></i-tabler>{{ blogPost.views }}</span>
+                  <span class="f-s-14 d-flex align-items-center gap-4"><i-tabler name="message-2"
+                      class="icon-18"></i-tabler>{{ blogPost.comments }}</span>
+                </div>
+                <span class="m-l-auto f-s-14 d-flex align-items-center gap-4">
+                  <i-tabler name="point" class="icon-14"></i-tabler>
+                  {{ blogPost.date }}
+                </span>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+        } }
+        <!--end-->
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <app-footer></app-footer>
+  </div>
+</div>

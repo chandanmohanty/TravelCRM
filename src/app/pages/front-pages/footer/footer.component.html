@@ -1,0 +1,110 @@
+<div class="footer-content">
+  <div class="bg-primary position-relative overflow-hidden spacing-top-bottom footer-first-content">
+    <div class="first-section d-none d-lg-flex">
+      <img src="assets/images/front-end/screenshot-1.png" alt="left-side-img" />
+    </div>
+
+    <div class="second-section">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-9 text-center">
+            <div class="d-flex align-items-center justify-content-center">
+              <mat-card class="rounded cards m-b-0 icon-56 d-flex align-items-center justify-content-center">
+                <img src="assets/images/front-end/logo-icon.svg" alt="framework" />
+              </mat-card>
+            </div>
+            <h2 class="lh-normal text-white m-y-20 section-sub-title f-s-44">
+              Focus on what truly matters—creating stunning, functional designs.
+            </h2>
+            <p class="f-s-18 m-b-20 m-t-0 lh-normal text-center text-white">
+              Designed for ease of use and customization, this template help you
+              build professional dashboards faster.
+            </p>
+            <a mat-stroked-button class="text-white" [routerLink]="'/authentication/side-register'">Register</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="third-section d-none d-lg-flex">
+      <img src="assets/images/front-end/screenshot-2.png" alt="right-side-img" />
+    </div>
+  </div>
+
+
+  <div class="overflow-hidden bg-dark-200 footer-second-content">
+    <div class="container">
+      <div class="row p-t-48 p-b-24">
+        <div class="col-md-3 col-6 m-b-20">
+          <div class="listContainer">
+            <div class="branding p-0 m-b-16">
+              <app-branding></app-branding>
+            </div>
+            <mat-list role="list" class="p-y-0">
+              @for (item of applicationsItems; track item) {
+              <a class="footer-link text-decoration-none d-block m-b-20 text-white" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 m-b-20">
+          <div class="listContainer">
+            <h5 class="f-s-16 f-w-600 m-b-30 text-white">Forms</h5>
+            <mat-list role="list" class="p-y-0">
+              @for (item of formsItems; track item) {
+              <a class="footer-link text-decoration-none d-block m-b-20 text-white" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 m-b-20">
+          <div class="listContainer">
+            <h5 class="f-s-16 f-w-600 m-b-30 text-white">Tables</h5>
+            <mat-list role="list" class="p-y-0">
+              @for (item of tablesItems; track item) {
+              <a class="footer-link text-decoration-none d-block m-b-20 text-white" [routerLink]="[item.href]">
+                {{ item.title }}
+              </a>
+              }
+            </mat-list>
+          </div>
+        </div>
+        <div class="col-md-3 col-6 m-b-20">
+          <h5 class="f-s-16 f-w-600 m-b-30 text-white">Follow us</h5>
+          <div class="d-flex align-items-center gap-20">
+            @for (icon of socialIcons; track icon.src) {
+              <img
+                [src]="icon.src"
+                [matTooltip]="icon.tooltip"
+                alt="social-icon"
+                width="22"
+                height="22"
+                class="cursor-pointer"
+              />
+              }
+          </div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between p-y-24 b-t-1 flex-wrap">
+        <!-- Left side -->
+        <div class="d-flex align-items-center gap-16">
+          <img src="assets/images/front-end/logo-icon-white.svg" alt="logo" />
+          <h6 class="f-s-14 f-w-500 text-white">All rights reserved by MatDash.</h6>
+        </div>
+
+        <!-- Right side -->
+        <div class="d-flex justify-content-end align-items-center m-y-8">
+          <p class="f-s-14 text-white m-0">
+            Designed & Developed by
+            <a href="https://adminmart.com/" target="_blank" class="text-decoration-none text-primary">
+              AdminMart.</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

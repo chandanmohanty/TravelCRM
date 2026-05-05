@@ -1,0 +1,110 @@
+<div class="contact-page">
+  <div class="banner-contact bg-extra-light p-y-56">
+    <div class="container">
+      <div class="d-flex justify-content-between flex-wrap align-items-center height-row">
+        <h2 class="section-sub-title f-s-44 lh-normal">We’d love to hear from you</h2>
+        <div class="d-flex align-items-center gap-6 breadcrumb">
+          <a [routerLink]="'/front-pages/homepage'"
+            class="f-s-14 text-uppercase text-decoration-none f-w-700">MatDash</a>
+          <i-tabler name="chevron-right" class="icon-18 d-flex"></i-tabler>
+          <a [routerLink]="'/front-pages/contact'"
+            class="f-s-14 text-uppercase text-primary text-decoration-none f-w-700">
+            Contact Us
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="contact-details bg-extra-light p-b-30">
+    <div class="container">
+      <iframe class="overflow-hidden rounded m-b-30"
+        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d193571.4382614189!2d-74.11808650918135!3d40.70583163669245!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89c250b5899db7db%3A0x40d0f6f9c3f63350!2sNew%20York%2C%20NY%2C%20USA!5e0!3m2!1sen!2sus!4v1716904212345!5m2!1sen!2sus"
+        width="100%" height="400" style="border: 0" allowfullscreen="" loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade">
+      </iframe>
+
+      <div class="row">
+        <div class="col-md-4">
+          <mat-card class="shadow-none bg-primary rounded-8 p-30 position-relative overflow-hidden">
+            <div class="p-b-20">
+              <h3 class="f-s-20 m-b-16 text-white">Reach Out Today</h3>
+              <p class="m-0 text-white f-s-16">
+                Have questions or need assistance? We're just a message away.
+              </p>
+            </div>
+            <mat-divider class="op-5"></mat-divider>
+            <div class="p-t-20">
+              <h3 class="f-s-20 m-b-16 text-white">Our Location</h3>
+              <p class="m-0 text-white f-s-16">
+                Visit us in person or find our contact details to connect with
+                us directly.
+              </p>
+            </div>
+          </mat-card>
+        </div>
+        <div class="col-md-8">
+          <mat-card>
+            <mat-card-content>
+              <form>
+                <div class="row">
+                  <div class="col-md-6">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">First Name<span>*</span></mat-label>
+                    <mat-form-field appearance="outline" class="w-100" color="primary">
+                      <input matInput type="text" placeholder="First Name" />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Phone Number<span>*</span></mat-label>
+                    <mat-form-field appearance="outline" class="w-100" color="primary">
+                      <input matInput type="tel" placeholder="xxx xxx xxxx" />
+                    </mat-form-field>
+                  </div>
+                  <div class="col-md-6">
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Last Name<span>*</span></mat-label>
+                    <mat-form-field appearance="outline" class="w-100" color="primary">
+                      <input matInput type="text" placeholder="Last Name" />
+                    </mat-form-field>
+                    <!-- input -->
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Email<span>*</span></mat-label>
+                    <mat-form-field appearance="outline" class="w-100" color="primary">
+                      <input matInput type="mail" placeholder="Email address" />
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-lg-12">
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Enquire related to<span>*</span>
+                    </mat-label>
+                    <mat-form-field appearance="outline" class="w-100">
+                      <mat-select value="General Enquiry">
+                        <mat-option value="General Enquiry">General Enquiry</mat-option>
+                        <mat-option value="General Enquiry 2">Customer Service Enquiry</mat-option>
+                        <mat-option value="General Enquiry 2">Legal Enquiry</mat-option>
+                        <mat-option value="General Enquiry 2">General Enquiry</mat-option>
+                      </mat-select>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="row">
+                  <div class="col-lg-12">
+                    <mat-label class="f-s-14 f-w-600 m-b-8 d-block">Message</mat-label>
+                    <mat-form-field appearance="outline" class="w-100" color="primary">
+                      <textarea matInput rows="5" placeholder="Write your message here"></textarea>
+                    </mat-form-field>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center justify-content-end">
+                  <button mat-flat-button>Send Message</button>
+                </div>
+              </form>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <app-footer></app-footer>
+  </div>
+</div>

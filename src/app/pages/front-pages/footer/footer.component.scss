@@ -1,0 +1,26 @@
+.footer-content {
+  .footer-first-content {
+
+    .first-section,
+    .third-section {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+
+    }
+
+    .first-section {
+      left: 0;
+    }
+
+    .third-section {
+      right: 0;
+    }
+  }
+
+  .footer-link {
+    &:hover {
+      color: var(--mat-sys-primary) !important;
+    }
+  }
+}
