@@ -18,10 +18,10 @@ public static class AvailabilityCalculator
         int requestedQuantity)
     {
         if (requestedQuantity < 1)
-            return AvailabilityResult.Fail(startDate, "Quantity must be at least 1");
+            return AvailabilityResult.Unavailable(startDate, "Quantity must be at least 1");
 
         if (resource is AssetResource && requestedQuantity != 1)
-            return AvailabilityResult.Fail(startDate, "Asset resources must use Quantity = 1");
+            return AvailabilityResult.Unavailable(startDate, "Asset resources must use Quantity = 1");
 
         var poolDefault = (resource as PoolResource)?.DefaultCapacity ?? 1;
 
@@ -32,7 +32,7 @@ public static class AvailabilityCalculator
                 c => c.ResourceId == resource.Id && c.Date == d && c.Slot == requestedSlot);
 
             if (calOverride is { IsBlocked: true })
-                return AvailabilityResult.Fail(d, $"Date {d:yyyy-MM-dd} is blocked");
+                return AvailabilityResult.Unavailable(d, $"Date {d:yyyy-MM-dd} is blocked");
 
             var capacity = calOverride?.Capacity ?? poolDefault;
 
@@ -46,11 +46,11 @@ public static class AvailabilityCalculator
                 .Sum(h => h.Quantity);
 
             if (occupied + requestedQuantity > capacity)
-                return AvailabilityResult.Fail(d,
+                return AvailabilityResult.Unavailable(d,
                     $"Date {d:yyyy-MM-dd} exceeds capacity (have {capacity - occupied}, requesting {requestedQuantity})");
         }
 
-        return AvailabilityResult.Ok();
+        return AvailabilityResult.Available();
     }
 
     /// <summary>
@@ -64,6 +64,6 @@ public static class AvailabilityCalculator
 
 public sealed record AvailabilityResult(bool IsAvailable, DateOnly? FailingDate, string? Reason)
 {
-    public static AvailabilityResult Ok() => new(true, null, null);
-    public static AvailabilityResult Fail(DateOnly date, string reason) => new(false, date, reason);
+    public static AvailabilityResult Available() => new(true, null, null);
+    public static AvailabilityResult Unavailable(DateOnly date, string reason) => new(false, date, reason);
 }
