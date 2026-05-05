@@ -1,0 +1,61 @@
+# See http://help.github.com/ignore-files/ for more about ignoring files.
+
+# Compiled output
+/dist
+/tmp
+/out-tsc
+/bazel-out
+
+# Node
+/node_modules
+npm-debug.log
+yarn-error.log
+
+# IDEs and editors
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# Miscellaneous
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+
+# System files
+.DS_Store
+Thumbs.db
+
+# .NET build output
+**/bin/
+**/obj/
+/build_out/
+/publish/
+graphify-out/
+
+# Local override for appsettings (optional fallback for devs who don't use user-secrets)
+appsettings.Local.json
+appsettings.*.Local.json
+TravelCrm.Api/keys/
+
+# Runtime logs
+TravelCrm.Api/logs/
+
+# Claude / agent local state (workspace-only, not for sharing)
+.claude/settings.local.json
+.claude/worktrees/

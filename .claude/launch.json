@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "angular-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["ng", "serve", "--port", "4201"],
+      "port": 4201
+    },
+    {
+      "name": "dotnet-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "TravelCrm.Api"],
+      "port": 5000
+    }
+  ]
+}
