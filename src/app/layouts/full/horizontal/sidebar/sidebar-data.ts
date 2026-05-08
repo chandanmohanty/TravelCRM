@@ -101,14 +101,33 @@ export const navItems: NavItem[] = [
         route: 'crm/customers',
       },
       {
-        displayName: 'Suppliers',
-        iconName: 'solar:round-alt-arrow-right-line-duotone',
-        route: 'apps/employee',
-      },
-      {
         displayName: 'Reports',
         iconName: 'solar:round-alt-arrow-right-line-duotone',
         route: 'crm/reports',
+      },
+    ],
+  },
+
+  // ─── Inventory ────────────────────────────────────────────────────────────
+  {
+    displayName: 'Inventory',
+    iconName: 'solar:case-line-duotone',
+    route: 'inventory',
+    children: [
+      {
+        displayName: 'All Suppliers',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        route: 'inventory/suppliers',
+      },
+      {
+        displayName: 'Add Supplier',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        route: 'inventory/suppliers/new',
+      },
+      {
+        displayName: 'Settings',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        route: 'inventory/settings',
       },
     ],
   },

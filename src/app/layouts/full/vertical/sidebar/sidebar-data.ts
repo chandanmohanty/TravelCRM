@@ -128,6 +128,20 @@ export const navItems: NavItem[] = [
     displayName: 'Suppliers',
     iconName: 'solar:case-line-duotone',
     route: '/inventory/suppliers',
+    children: [
+      {
+        displayName: 'All Suppliers',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        subItemIcon: true,
+        route: '/inventory/suppliers',
+      },
+      {
+        displayName: 'Add Supplier',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        subItemIcon: true,
+        route: '/inventory/suppliers/new',
+      },
+    ],
   },
   {
     id: 12,
