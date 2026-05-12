@@ -40,245 +40,343 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     TablerIconsModule,
   ],
   template: `
-    <div class="crm-page">
-      <div class="page-header">
-        <div class="page-title">
-          <h2>Leads</h2>
-          <span class="subtitle">Track and manage potential customers</span>
+    <div class="ll-page">
+
+      <!-- ── Header ───────────────────────────────── -->
+      <div class="ll-header">
+        <div>
+          <h2 class="ll-title">Leads</h2>
+          <p class="ll-sub">Track and manage potential customers</p>
         </div>
-        <div class="page-actions">
-          <button mat-flat-button color="primary" (click)="openForm()">
-            <i-tabler name="plus" class="icon-sm mr-1"></i-tabler> Add Lead
-          </button>
+        <button mat-flat-button color="primary" class="ll-add-btn" (click)="openForm()">
+          <i-tabler name="plus" class="ll-btn-icon"></i-tabler> Add Lead
+        </button>
+      </div>
+
+      <!-- ── KPI strip ─────────────────────────────── -->
+      <div class="ll-stats">
+        <div class="ll-stat">
+          <div class="ll-stat-icon" style="--c:#e8f0fe;--t:#1a73e8">
+            <i-tabler name="users"></i-tabler>
+          </div>
+          <div class="ll-stat-body">
+            <span class="ll-stat-num">{{ totalLeads() }}</span>
+            <span class="ll-stat-lbl">Total Leads</span>
+          </div>
+        </div>
+        <div class="ll-stat-sep"></div>
+        <div class="ll-stat">
+          <div class="ll-stat-icon" style="--c:#ccfbf1;--t:#0d9488">
+            <i-tabler name="user-plus"></i-tabler>
+          </div>
+          <div class="ll-stat-body">
+            <span class="ll-stat-num">{{ newLeads() }}</span>
+            <span class="ll-stat-lbl">New</span>
+          </div>
+        </div>
+        <div class="ll-stat-sep"></div>
+        <div class="ll-stat">
+          <div class="ll-stat-icon" style="--c:#ede9fe;--t:#7c3aed">
+            <i-tabler name="rosette-discount-check"></i-tabler>
+          </div>
+          <div class="ll-stat-body">
+            <span class="ll-stat-num">{{ qualifiedLeads() }}</span>
+            <span class="ll-stat-lbl">Qualified</span>
+          </div>
+        </div>
+        <div class="ll-stat-sep"></div>
+        <div class="ll-stat">
+          <div class="ll-stat-icon" style="--c:#ffedd5;--t:#ea580c">
+            <i-tabler name="circle-arrow-right"></i-tabler>
+          </div>
+          <div class="ll-stat-body">
+            <span class="ll-stat-num">{{ convertedLeads() }}</span>
+            <span class="ll-stat-lbl">Converted</span>
+          </div>
         </div>
       </div>
 
-      <!-- KPI Cards -->
-      <div class="kpi-grid">
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-inner">
-              <div class="kpi-icon" style="background:#e8f0fe">
-                <i-tabler name="users" style="color:#1a73e8" class="icon-md"></i-tabler>
-              </div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ totalLeads() }}</span>
-                <span class="kpi-label">Total Leads</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-inner">
-              <div class="kpi-icon" style="background:#ccfbf1">
-                <i-tabler name="user-plus" style="color:#0d9488" class="icon-md"></i-tabler>
-              </div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ newLeads() }}</span>
-                <span class="kpi-label">New</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-inner">
-              <div class="kpi-icon" style="background:#ede9fe">
-                <i-tabler name="check-circle" style="color:#7c3aed" class="icon-md"></i-tabler>
-              </div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ qualifiedLeads() }}</span>
-                <span class="kpi-label">Qualified</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-        <mat-card class="kpi-card">
-          <mat-card-content>
-            <div class="kpi-inner">
-              <div class="kpi-icon" style="background:#ffedd5">
-                <i-tabler name="arrow-right-circle" style="color:#ea580c" class="icon-md"></i-tabler>
-              </div>
-              <div class="kpi-data">
-                <span class="kpi-value">{{ convertedLeads() }}</span>
-                <span class="kpi-label">Converted</span>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
+      <!-- ── Loading ───────────────────────────────── -->
       @if (loading()) {
-        <div class="loading-center"><mat-spinner diameter="40"></mat-spinner></div>
+        <div class="ll-loading"><mat-spinner diameter="32"></mat-spinner></div>
       }
 
+      <!-- ── Main card: filter toolbar + table ─────── -->
       @if (!loading()) {
-        <mat-card class="filter-card">
-          <mat-card-content>
-            <div class="filter-row">
-              <mat-form-field appearance="outline" class="filter-search">
-                <mat-label>Search leads</mat-label>
-                <input matInput (keyup)="applyFilter($event)" placeholder="Name, email, company">
-                <mat-icon matSuffix>search</mat-icon>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-label>Status</mat-label>
-                <mat-select [(ngModel)]="statusFilter" (ngModelChange)="filterByDropdown()">
-                  <mat-option value="">All</mat-option>
-                  <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-              <mat-form-field appearance="outline" class="filter-select">
-                <mat-label>Source</mat-label>
-                <mat-select [(ngModel)]="sourceFilter" (ngModelChange)="filterByDropdown()">
-                  <mat-option value="">All</mat-option>
-                  <mat-option *ngFor="let s of sources" [value]="s">{{ s }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-          </mat-card-content>
-        </mat-card>
+        <div class="ll-card">
 
-        <mat-card class="table-card">
-          <mat-card-content>
-            <div class="table-wrapper">
-              <table mat-table [dataSource]="dataSource" matSort class="crm-table">
-                <ng-container matColumnDef="name">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
-                  <td mat-cell *matCellDef="let row">
-                    <div class="lead-name">
-                      <div class="avatar" [style.background]="getAvatarColor(row.firstName)">
-                        {{ row.firstName[0] }}{{ row.lastName[0] }}
-                      </div>
-                      <div>
-                        <strong>{{ row.firstName }} {{ row.lastName }}</strong>
-                        <div class="sub-text">{{ row.jobTitle }}</div>
-                      </div>
-                    </div>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="company">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Company</th>
-                  <td mat-cell *matCellDef="let row">
-                    <div class="company-cell">
-                      <i-tabler name="building" class="icon-xs text-muted mr-1"></i-tabler>
-                      {{ row.company }}
-                    </div>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
-                  <td mat-cell *matCellDef="let row">
-                    <span class="status-badge" [ngClass]="getStatusClass(row.status)">{{ row.status }}</span>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="score">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
-                  <td mat-cell *matCellDef="let row">
-                    <div class="score-cell">
-                      <span class="score-num" [ngClass]="getScoreClass(row.score)">{{ row.score }}</span>
-                      <mat-progress-bar mode="determinate" [value]="row.score"
-                        [ngClass]="getScoreBarClass(row.score)" class="score-bar"></mat-progress-bar>
-                    </div>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="source">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Source</th>
-                  <td mat-cell *matCellDef="let row">{{ row.source }}</td>
-                </ng-container>
-                <ng-container matColumnDef="estimatedValue">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Est. Value</th>
-                  <td mat-cell *matCellDef="let row">
-                    <strong>{{ row.estimatedValue | currency:'USD':'symbol':'1.0-0' }}</strong>
-                  </td>
-                </ng-container>
-                <ng-container matColumnDef="assignedTo">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Assigned To</th>
-                  <td mat-cell *matCellDef="let row">{{ row.assignedTo }}</td>
-                </ng-container>
-                <ng-container matColumnDef="createdAt">
-                  <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
-                  <td mat-cell *matCellDef="let row">{{ row.createdAt | date:'mediumDate' }}</td>
-                </ng-container>
-                <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef></th>
-                  <td mat-cell *matCellDef="let row">
-                    <button mat-icon-button [matMenuTriggerFor]="menu">
-                      <i-tabler name="dots-vertical" class="icon-sm"></i-tabler>
-                    </button>
-                    <mat-menu #menu="matMenu">
-                      <button mat-menu-item (click)="openForm(row)">
-                        <i-tabler name="edit" class="icon-xs mr-1"></i-tabler> Edit
-                      </button>
-                      <button mat-menu-item (click)="convertLead(row)"
-                              [disabled]="row.status === 'Converted' || row.status === 'Unqualified'">
-                        <i-tabler name="arrow-right" class="icon-xs mr-1"></i-tabler> Convert
-                      </button>
-                      <button mat-menu-item (click)="deleteLead(row)"
-                              [disabled]="row.status === 'Converted'"
-                              class="text-error">
-                        <i-tabler name="trash" class="icon-xs mr-1"></i-tabler> Delete
-                      </button>
-                    </mat-menu>
-                  </td>
-                </ng-container>
-                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="table-row"></tr>
-              </table>
+          <!-- filter toolbar -->
+          <div class="ll-toolbar">
+            <div class="ll-search-wrap">
+              <i-tabler name="search" class="ll-search-icon"></i-tabler>
+              <input class="ll-search-input" placeholder="Search by name, email or company…"
+                     (keyup)="applyFilter($event)" />
             </div>
-            <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons></mat-paginator>
-          </mat-card-content>
-        </mat-card>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ll-filter-field">
+              <mat-label>Status</mat-label>
+              <mat-select [(ngModel)]="statusFilter" (ngModelChange)="filterByDropdown()">
+                <mat-option value="">All</mat-option>
+                <mat-option *ngFor="let s of statuses" [value]="s">{{ s }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ll-filter-field">
+              <mat-label>Source</mat-label>
+              <mat-select [(ngModel)]="sourceFilter" (ngModelChange)="filterByDropdown()">
+                <mat-option value="">All</mat-option>
+                <mat-option *ngFor="let s of sources" [value]="s">{{ s }}</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <!-- table -->
+          <div class="ll-table-wrap">
+            <table mat-table [dataSource]="dataSource" matSort class="ll-table">
+
+              <ng-container matColumnDef="name">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Name</th>
+                <td mat-cell *matCellDef="let row">
+                  <div class="ll-name-cell">
+                    <div class="ll-avatar" [style.background]="getAvatarColor(row.firstName)">
+                      {{ row.firstName[0] }}{{ row.lastName[0] }}
+                    </div>
+                    <div class="ll-name-text">
+                      <span class="ll-name-primary">{{ row.firstName }} {{ row.lastName }}</span>
+                      @if (row.jobTitle) {
+                        <span class="ll-name-secondary">{{ row.jobTitle }}</span>
+                      }
+                    </div>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="company">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Company</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-company">{{ row.company }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="status">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Status</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-badge" [ngClass]="getStatusClass(row.status)">{{ row.status }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="score">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Score</th>
+                <td mat-cell *matCellDef="let row">
+                  <div class="ll-score">
+                    <span class="ll-score-num" [ngClass]="getScoreClass(row.score)">{{ row.score }}</span>
+                    <mat-progress-bar mode="determinate" [value]="row.score"
+                      [ngClass]="getScoreBarClass(row.score)" class="ll-bar"></mat-progress-bar>
+                  </div>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="source">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Source</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-muted">{{ row.source }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="estimatedValue">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Est. Value</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-value">{{ row.estimatedValue | currency:'USD':'symbol':'1.0-0' }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="assignedTo">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Assigned To</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-muted">{{ row.assignedTo }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="createdAt">
+                <th mat-header-cell *matHeaderCellDef mat-sort-header>Created</th>
+                <td mat-cell *matCellDef="let row">
+                  <span class="ll-muted">{{ row.createdAt | date:'d MMM y' }}</span>
+                </td>
+              </ng-container>
+
+              <ng-container matColumnDef="actions">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let row" class="ll-actions-cell">
+                  <button mat-icon-button class="ll-menu-btn" [matMenuTriggerFor]="menu"
+                          matTooltip="Actions">
+                    <i-tabler name="dots-vertical" class="ll-icon-sm"></i-tabler>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openForm(row)">
+                      <i-tabler name="pencil" class="ll-icon-xs ll-mr"></i-tabler> Edit
+                    </button>
+                    <button mat-menu-item (click)="convertLead(row)"
+                            [disabled]="row.status === 'Converted' || row.status === 'Unqualified'">
+                      <i-tabler name="arrow-right" class="ll-icon-xs ll-mr"></i-tabler> Convert
+                    </button>
+                    <button mat-menu-item (click)="deleteLead(row)"
+                            [disabled]="row.status === 'Converted'"
+                            class="ll-danger-item">
+                      <i-tabler name="trash" class="ll-icon-xs ll-mr"></i-tabler> Delete
+                    </button>
+                  </mat-menu>
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="ll-row"
+                  (click)="openForm(row)"></tr>
+            </table>
+          </div>
+
+          <mat-paginator [pageSizeOptions]="[10, 25, 50]" showFirstLastButtons
+                         class="ll-paginator"></mat-paginator>
+        </div>
       }
+
     </div>
   `,
   styles: [`
-    .crm-page { padding: 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-title h2 { margin: 0; font-size: 22px; font-weight: 600; }
-    .page-title .subtitle { color: #6c757d; font-size: 14px; }
-    .page-actions { display: flex; gap: 8px; }
-    .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-    .kpi-card mat-card-content { padding: 16px; }
-    .kpi-inner { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
-    .kpi-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
-    .kpi-data { display: flex; flex-direction: column; }
-    .kpi-value { font-size: 24px; font-weight: 700; line-height: 1; }
-    .kpi-label { font-size: 13px; color: #6c757d; margin-top: 4px; }
-    .loading-center { display: flex; justify-content: center; padding: 40px; }
-    .filter-card { margin-bottom: 20px; }
-    .filter-card mat-card-content { padding: 16px; }
-    .filter-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
-    .filter-search { flex: 1; min-width: 200px; }
-    .filter-select { width: 160px; }
-    .table-card mat-card-content { padding: 0; }
-    .table-wrapper { overflow-x: auto; }
-    .crm-table { width: 100%; }
-    .lead-name { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
-    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; color: white; flex-shrink: 0; }
-    .sub-text { font-size: 12px; color: #6c757d; }
-    .company-cell { display: flex; align-items: center; }
-    .text-muted { color: #6c757d; }
-    .mr-1 { margin-right: 4px; }
-    .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; }
-    .status-new { background: #e3f2fd; color: #1565c0; }
-    .status-contacted { background: #fff3e0; color: #e65100; }
-    .status-qualified { background: #e8f5e9; color: #2e7d32; }
-    .status-unqualified { background: #fce4ec; color: #c62828; }
-    .status-converted { background: #f3e5f5; color: #6a1b9a; }
-    .score-cell { display: flex; flex-direction: column; gap: 4px; min-width: 80px; }
-    .score-num { font-weight: 700; font-size: 14px; }
-    .score-bar { height: 4px; border-radius: 2px; }
-    .score-high { color: #28a745; }
-    .score-mid { color: #fd7e14; }
-    .score-low { color: #dc3545; }
-    .text-error { color: #dc3545; }
-    .table-row:hover { background: rgba(0,0,0,0.02); cursor: pointer; }
-    .icon-xs { font-size: 14px; width: 14px; height: 14px; }
-    .icon-sm { font-size: 18px; width: 18px; height: 18px; }
-    .icon-md { font-size: 24px; width: 24px; height: 24px; }
-    @media (max-width: 768px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+    /* ── Page shell ─────────────────────────────── */
+    .ll-page { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+
+    /* ── Header ─────────────────────────────────── */
+    .ll-header {
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .ll-title { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.2; }
+    .ll-sub   { margin: 2px 0 0; font-size: 13px; color: #64748b; }
+    .ll-add-btn { height: 36px; font-size: 13px; font-weight: 600; border-radius: 8px; }
+    .ll-btn-icon { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
+
+    /* ── KPI strip ──────────────────────────────── */
+    .ll-stats {
+      display: flex; align-items: center;
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(15,23,42,.07);
+      padding: 0 4px;
+    }
+    .ll-stat {
+      display: flex; align-items: center; gap: 10px;
+      padding: 14px 20px; flex: 1;
+    }
+    .ll-stat-sep {
+      width: 1px; height: 32px; background: #f1f5f9; flex-shrink: 0;
+    }
+    .ll-stat-icon {
+      width: 34px; height: 34px; border-radius: 8px;
+      background: var(--c); color: var(--t);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .ll-stat-icon i-tabler { width: 18px; height: 18px; }
+    .ll-stat-body { display: flex; flex-direction: column; line-height: 1; }
+    .ll-stat-num  { font-size: 20px; font-weight: 700; color: #0f172a; }
+    .ll-stat-lbl  { font-size: 11.5px; color: #64748b; margin-top: 3px; }
+
+    /* ── Loading ────────────────────────────────── */
+    .ll-loading { display: flex; justify-content: center; padding: 40px; }
+
+    /* ── Main card ──────────────────────────────── */
+    .ll-card {
+      background: #fff; border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(15,23,42,.07);
+      overflow: hidden;
+    }
+
+    /* ── Filter toolbar ─────────────────────────── */
+    .ll-toolbar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 16px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .ll-search-wrap {
+      flex: 1; display: flex; align-items: center; gap: 8px;
+      background: #f8fafc; border: 1px solid #e2e8f0;
+      border-radius: 8px; padding: 0 12px; height: 38px;
+    }
+    .ll-search-icon { width: 16px; height: 16px; color: #94a3b8; flex-shrink: 0; }
+    .ll-search-input {
+      border: none; background: transparent; outline: none;
+      font-size: 13px; color: #0f172a; width: 100%;
+    }
+    .ll-search-input::placeholder { color: #94a3b8; }
+    .ll-filter-field { width: 140px; }
+
+    /* ── Table ──────────────────────────────────── */
+    .ll-table-wrap { overflow-x: auto; }
+    .ll-table { width: 100%; }
+
+    /* Compact header + cells */
+    .ll-table .mat-mdc-header-cell {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.5px; color: #94a3b8;
+      padding: 0 12px; height: 36px; border-bottom: 1px solid #f1f5f9;
+      background: #fafafa;
+    }
+    .ll-table .mat-mdc-cell {
+      padding: 0 12px; height: 46px; border-bottom: 1px solid #f8fafc;
+      font-size: 13px; color: #1e293b;
+    }
+
+    /* ── Name cell ──────────────────────────────── */
+    .ll-name-cell { display: flex; align-items: center; gap: 9px; }
+    .ll-avatar {
+      width: 30px; height: 30px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
+    }
+    .ll-name-text  { display: flex; flex-direction: column; line-height: 1.2; }
+    .ll-name-primary   { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ll-name-secondary { font-size: 11.5px; color: #94a3b8; }
+
+    /* ── Other cells ────────────────────────────── */
+    .ll-company { font-size: 13px; color: #334155; }
+    .ll-muted   { font-size: 12.5px; color: #64748b; }
+    .ll-value   { font-size: 13px; font-weight: 600; color: #0f172a; }
+
+    /* ── Status badge ───────────────────────────── */
+    .ll-badge {
+      display: inline-block; padding: 3px 9px; border-radius: 20px;
+      font-size: 11.5px; font-weight: 600; white-space: nowrap;
+    }
+    .status-new         { background: #dbeafe; color: #1d4ed8; }
+    .status-contacted   { background: #fef3c7; color: #b45309; }
+    .status-qualified   { background: #dcfce7; color: #15803d; }
+    .status-unqualified { background: #fee2e2; color: #b91c1c; }
+    .status-converted   { background: #f3e8ff; color: #7e22ce; }
+
+    /* ── Score cell ─────────────────────────────── */
+    .ll-score { display: flex; flex-direction: column; gap: 3px; min-width: 72px; }
+    .ll-score-num { font-size: 13px; font-weight: 700; line-height: 1; }
+    .ll-bar   { height: 3px; border-radius: 2px; }
+    .score-high { color: #16a34a; }
+    .score-mid  { color: #d97706; }
+    .score-low  { color: #dc2626; }
+
+    /* ── Row hover ──────────────────────────────── */
+    .ll-row { cursor: pointer; transition: background 120ms; }
+    .ll-row:hover .mat-mdc-cell { background: #f8fafc; }
+
+    /* ── Actions cell ───────────────────────────── */
+    .ll-actions-cell { width: 40px; text-align: right; }
+    .ll-menu-btn { width: 30px; height: 30px; line-height: 30px; }
+    .ll-icon-sm { width: 16px; height: 16px; }
+    .ll-icon-xs { width: 14px; height: 14px; }
+    .ll-mr      { margin-right: 6px; }
+    .ll-danger-item { color: #dc2626; }
+
+    /* ── Paginator ──────────────────────────────── */
+    .ll-paginator { border-top: 1px solid #f1f5f9; }
+
+    /* ── Responsive ─────────────────────────────── */
+    @media (max-width: 768px) {
+      .ll-stats { flex-wrap: wrap; }
+      .ll-stat  { flex: 1 1 40%; }
+      .ll-stat-sep { display: none; }
+    }
   `],
 })
 export class LeadListComponent implements OnInit, AfterViewInit {
