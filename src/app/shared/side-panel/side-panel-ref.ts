@@ -11,8 +11,8 @@ import { Observable, Subject } from 'rxjs';
  *   (X, backdrop, Escape). Programmatic `ref.close(...)` from the
  *   rendered component still works.
  * - {@link setDirty} — marks the panel as having unsaved changes.
- *   User-initiated close attempts trigger a `window.confirm("Discard…")`
- *   prompt; only proceed if the user clicks OK.
+ *   User-initiated close attempts open a Material confirmation dialog;
+ *   the panel only closes if the user clicks "Discard".
  *
  * Both are independent. `disableClose()` takes precedence over `setDirty()`.
  *
@@ -59,8 +59,8 @@ export class SidePanelRef<R = unknown> {
 
   /**
    * Mark the panel as having unsaved changes. When true, user-initiated
-   * close attempts trigger a `window.confirm(...)` prompt; the panel
-   * only closes if the user confirms.
+   * close attempts open a Material confirmation dialog; the panel only
+   * closes if the user clicks "Discard".
    *
    * Form components typically wire this to `form.dirty`:
    *
@@ -72,7 +72,7 @@ export class SidePanelRef<R = unknown> {
     this._dirty = dirty;
   }
 
-  /** Customize the prompt shown when a dirty panel is being dismissed. */
+  /** Customize the body text shown in the discard-changes dialog. */
   setDirtyConfirmMessage(message: string): void {
     this._dirtyConfirmMessage = message;
   }
@@ -91,14 +91,19 @@ export class SidePanelRef<R = unknown> {
   /** @internal Service-side hook to drive the leave animation + cleanup. */
   _requestClose?: (result?: R) => void;
 
-  /**
-   * @internal Checked by the service before propagating a user-initiated
-   * close. Returns `false` to veto, `true` to proceed.
-   */
-  _canClose(): boolean {
-    if (this._disableClose) return false;
-    if (this._dirty) return window.confirm(this._dirtyConfirmMessage);
-    return true;
+  /** @internal True while user-initiated close is blocked. */
+  _isDisabled(): boolean {
+    return this._disableClose;
+  }
+
+  /** @internal True when unsaved-changes guard is active. */
+  _isDirty(): boolean {
+    return this._dirty;
+  }
+
+  /** @internal Body text passed to the discard-changes dialog. */
+  _getDirtyMessage(): string {
+    return this._dirtyConfirmMessage;
   }
 
   /** @internal Called after teardown to fire {@link afterClosed}. */

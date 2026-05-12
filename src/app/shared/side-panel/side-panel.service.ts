@@ -8,9 +8,11 @@ import {
   createComponent,
   inject,
 } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { SidePanelComponent } from './side-panel.component';
 import { SidePanelRef } from './side-panel-ref';
 import { SIDE_PANEL_DATA, SidePanelConfig } from './side-panel-config';
+import { DiscardChangesDialogComponent } from './discard-changes-dialog.component';
 
 /**
  * Opens an Angular component inside a {@link SidePanelComponent}, mirroring
@@ -46,6 +48,7 @@ import { SIDE_PANEL_DATA, SidePanelConfig } from './side-panel-config';
 export class SidePanelService {
   private readonly appRef = inject(ApplicationRef);
   private readonly envInjector = inject(EnvironmentInjector);
+  private readonly dialog = inject(MatDialog);
 
   /** Currently open panels, used by Escape handling and a possible future `closeAll()`. */
   private readonly openPanels = new Set<ComponentRef<SidePanelComponent>>();
@@ -116,25 +119,58 @@ export class SidePanelService {
     };
 
     let programmatic = false;
+    // Prevents stacking multiple discard dialogs when the user spams the
+    // backdrop or Escape while the dialog is already open.
+    let closePending = false;
 
-    // User-initiated close (X, backdrop, Escape). Honours disableClose +
-    // setDirty guards; programmatic ref.close(...) sets `programmatic`
-    // first to bypass them.
-    const closedSub = panelRef.instance.closed.subscribe(() => {
-      if (!programmatic && !ref._canClose()) return;
+    // Declared with `let` so proceedClose can reference it via closure before
+    // the subscribe() call assigns it.
+    let closedSub: { unsubscribe(): void };
 
-      // Toggle `open` to false so the leave animation runs, then tear down
-      // once the animation finishes. Duration matches the 200ms panel leave
-      // + 180ms backdrop leave defined in the component animations.
+    // Runs the leave animation then tears the panel down.
+    const proceedClose = () => {
       panelRef.setInput('open', false);
       panelRef.changeDetectorRef.detectChanges();
+      // Duration must be ≥ the panel leave animation (200 ms) +
+      // backdrop leave (180 ms) defined in side-panel.component.ts.
       setTimeout(() => {
         closedSub.unsubscribe();
         teardown();
       }, 230);
+    };
+
+    // User-initiated close (X, backdrop, Escape). Honours disableClose +
+    // setDirty guards. Programmatic ref.close(...) sets `programmatic` first
+    // to bypass all guards.
+    closedSub = panelRef.instance.closed.subscribe(() => {
+      if (programmatic) {
+        proceedClose();
+        return;
+      }
+      if (ref._isDisabled()) return;
+      if (closePending) return; // discard dialog already open
+
+      if (ref._isDirty()) {
+        closePending = true;
+        this.dialog
+          .open(DiscardChangesDialogComponent, {
+            data: { message: ref._getDirtyMessage() },
+            // panelClass keeps the dialog visually separate from the side panel.
+            panelClass: 'side-panel-discard-dialog',
+            autoFocus: false,
+          })
+          .afterClosed()
+          .subscribe((confirmed: boolean) => {
+            closePending = false;
+            if (confirmed) proceedClose();
+          });
+        return;
+      }
+
+      proceedClose();
     });
 
-    // Programmatic close via ref.close(result) — bypasses the close guard.
+    // Programmatic close via ref.close(result) — bypasses all close guards.
     ref._requestClose = (result?: R) => {
       pendingResult = result;
       programmatic = true;

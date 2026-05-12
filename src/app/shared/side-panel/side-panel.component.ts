@@ -193,6 +193,17 @@ import type { SidePanelPosition } from './side-panel-config';
           border-radius: 0;
         }
       }
+
+      /*
+       * Material's CDK overlay container defaults to z-index 1000, which sits
+       * BELOW the side panel (1040/1041).  Raise it globally so that any
+       * Material overlay (dialogs, tooltips, menus) opened while a side panel
+       * is visible renders on top.  ViewEncapsulation.None means this rule is
+       * written to the global stylesheet — exactly what we need here.
+       */
+      .cdk-overlay-container {
+        z-index: 1100;
+      }
     `,
   ],
   animations: [

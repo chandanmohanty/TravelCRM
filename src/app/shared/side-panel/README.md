@@ -114,12 +114,12 @@ export class LeadListComponent {
 | `close(result?: R)` | Dismiss with optional payload delivered to `afterClosed()`. **Bypasses** the close guards — for explicit close from inside the rendered component (e.g. after a successful save). |
 | `afterClosed(): Observable<R \| undefined>` | Emits exactly once when the panel finishes closing (after the leave animation). |
 | `disableClose()` / `enableClose()` | Block / re-allow user-initiated close attempts (X, backdrop, Escape). Useful while a save is in flight. Does **not** affect programmatic `close(...)`. |
-| `setDirty(dirty: boolean)` | When `true`, user-initiated close attempts prompt `confirm("You have unsaved changes…")` before closing. Typically wired to `form.dirty`. |
-| `setDirtyConfirmMessage(msg: string)` | Customize the confirmation prompt text. |
+| `setDirty(dirty: boolean)` | When `true`, user-initiated close attempts open a Material "Discard changes?" dialog before closing. Typically wired to `form.dirty`. |
+| `setDirtyConfirmMessage(msg: string)` | Customize the body text shown in the discard-changes dialog. |
 
 ### Discard-changes guard recipe
 
-Wire the form's `dirty` state into the panel so backdrop / Esc / X attempts prompt before discarding edits:
+Wire the form's `dirty` state into the panel so backdrop / Esc / X attempts open the "Discard changes?" dialog before discarding edits:
 
 ```ts
 import { effect, inject } from '@angular/core';
