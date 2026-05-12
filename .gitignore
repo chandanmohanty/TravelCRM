@@ -59,3 +59,8 @@ TravelCrm.Api/logs/
 # Claude / agent local state (workspace-only, not for sharing)
 .claude/settings.local.json
 .claude/worktrees/
+
+# MS Office lock files (created while a doc is open)
+~$*.docx
+~$*.xlsx
+~$*.pptx
