@@ -173,5 +173,11 @@ public static class SeedData
         {
             await RolePermissionSeeder.SeedForTenantAsync(db, tid);
         }
+
+        // ── Plan catalogue + tenant subscription backfill (Phase 0) ──────────
+        // Seeds the 6 plan tiers and ensures every tenant has a TenantSubscription
+        // row. Idempotent. Run last so the tenants loop above has already
+        // materialised any new tenants created in earlier seed steps.
+        await PlanSeeder.SeedAsync(db);
     }
 }

@@ -8,6 +8,8 @@ import { environment } from 'src/environments/environment';
 import { API_BASE_URL } from './core/tokens/api-base-url.token';
 import { BrandContextService } from './core/services/brand-context.service';
 import { AuthService } from './core/services/auth.service';
+import { EntitlementsService } from './core/services/entitlements.service';
+import { firstValueFrom } from 'rxjs';
 import {
   provideRouter,
   withComponentInputBinding,
@@ -94,6 +96,21 @@ export const appConfig: ApplicationConfig = {
       deps: [BrandContextService, AuthService],
       useFactory: (brandCtx: BrandContextService, auth: AuthService) =>
         () => auth.isLoggedIn() ? brandCtx.load() : Promise.resolve(),
+    },
+    // Phase 0 — entitlements bootstrap. On page refresh with a valid token
+    // we need the plan + feature codes ready before guards run, so the
+    // *hasFeature directive renders correctly on first paint. Always
+    // resolves: platform admins have no tenant and the call falls back to
+    // "no entitlements" silently.
+    {
+      provide: APP_INITIALIZER,
+      multi: true,
+      deps: [EntitlementsService, AuthService],
+      useFactory: (ents: EntitlementsService, auth: AuthService) =>
+        () => {
+          if (!auth.isLoggedIn() || auth.isPlatformAdmin()) return Promise.resolve();
+          return firstValueFrom(ents.load()).catch(() => null);
+        },
     },
     provideClientHydration(),
     provideAnimationsAsync(),

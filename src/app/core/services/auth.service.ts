@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { tap } from 'rxjs/operators';
 import { Observable } from 'rxjs';
 import { LocaleService } from './locale.service';
+import { EntitlementsService } from './entitlements.service';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
 
 // ── DTOs ──────────────────────────────────────────────────────────────────────
@@ -46,10 +47,14 @@ const USER_KEY          = 'crm_user';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
-  private readonly http   = inject(HttpClient);
-  private readonly router = inject(Router);
-  private readonly locale = inject(LocaleService);
-  private readonly api    = `${inject(API_BASE_URL)}/api`;
+  private readonly http     = inject(HttpClient);
+  private readonly router   = inject(Router);
+  private readonly locale   = inject(LocaleService);
+  // Phase 0: fetch plan entitlements right after a successful login so the
+  // *hasFeature directive and plan-aware UI can light up before the first
+  // route renders. Cleared on logout.
+  private readonly ents     = inject(EntitlementsService);
+  private readonly api      = `${inject(API_BASE_URL)}/api`;
 
   // Reactive signal — updated on login / logout
   private _user = signal<LoginResponse | null>(this.loadUser());
@@ -70,7 +75,17 @@ export class AuthService {
     return this.http
       .post<LoginResponse>(`${this.api}/auth/login`, { email, password })
       .pipe(
-        tap(res => this.persist(res))
+        tap(res => this.persist(res)),
+        // Fire-and-forget — the login response resolves immediately so the
+        // user sees the dashboard fast; entitlements arrive a moment later
+        // and the *hasFeature directive re-renders any plan-gated UI.
+        // Platform admins have no tenant so this call simply 400s and the
+        // service falls back to "no entitlements" (all checks return false).
+        tap(() => {
+          if (!this.isPlatformAdmin()) {
+            this.ents.load().subscribe();
+          }
+        }),
       );
   }
 
@@ -79,6 +94,7 @@ export class AuthService {
     localStorage.removeItem(REFRESH_TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     this._user.set(null);
+    this.ents.clear();
     this.router.navigate(['/authentication/login']);
   }
 

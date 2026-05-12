@@ -18,6 +18,7 @@ using TravelCrm.Api.Infrastructure.Identity;
 using TravelCrm.Api.Infrastructure.Localization;
 using TravelCrm.Api.Infrastructure.Middleware;
 using TravelCrm.Api.Infrastructure.Multitenancy;
+using TravelCrm.Api.Infrastructure.Subscriptions;
 using TravelCrm.Api.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -68,6 +69,11 @@ builder.Services.AddHttpContextAccessor();
 // Tenant + user abstractions — first real consumers are the Branding feature slice
 builder.Services.AddScoped<ITenantContext, HttpTenantContext>();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+
+// Subscription / feature gating (Phase 0). Scoped so its per-request entitlement
+// cache lives for the duration of one HTTP request — avoids repeat DB reads
+// when a handler checks multiple feature codes.
+builder.Services.AddScoped<IFeatureGate, FeatureGate>();
 
 // Identity module services
 builder.Services.AddScoped<EmployeeIdGenerator>();

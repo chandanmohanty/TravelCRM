@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Domain.Entities.Inventory;
+using TravelCrm.Api.Domain.Entities.Subscriptions;
 using TravelCrm.Api.Infrastructure.Identity;
 using TravelCrm.Api.Infrastructure.Multitenancy;
 using TravelCrm.Api.Infrastructure.Security;
@@ -50,6 +51,11 @@ public sealed class ApplicationDbContext(
     public DbSet<TenantTask> TenantTasks => Set<TenantTask>();
     public DbSet<TaskType> TaskTypes => Set<TaskType>();
     public DbSet<TimeEntry> TimeEntries => Set<TimeEntry>();
+
+    // ── Subscriptions / Plans (Phase 0) ───────────────────────────────────────
+    public DbSet<Plan> Plans => Set<Plan>();
+    public DbSet<PlanFeature> PlanFeatures => Set<PlanFeature>();
+    public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
 
     // ── Inventory ─────────────────────────────────────────────────────────────
     public DbSet<Supplier> Suppliers => Set<Supplier>();
@@ -549,6 +555,53 @@ public sealed class ApplicationDbContext(
             b.ToTable("tenant_settings");
             b.Property(s => s.HoldTtlHours).HasDefaultValue(24);
             b.HasIndex(s => s.TenantId).IsUnique();
+        });
+
+        // ── Subscriptions / Plans (Phase 0) ──────────────────────────────────
+
+        // Plan — platform-scoped catalogue (no TenantId)
+        builder.Entity<Plan>(b =>
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Code).HasMaxLength(50).IsRequired();
+            b.HasIndex(p => p.Code).IsUnique();
+            b.Property(p => p.Name).HasMaxLength(100).IsRequired();
+            b.Property(p => p.Description).HasMaxLength(500);
+            b.Property(p => p.Currency).HasMaxLength(5).HasDefaultValue("INR");
+            b.Property(p => p.MonthlyPrice).HasColumnType("numeric(18,2)");
+            b.Property(p => p.AnnualPricePerMonth).HasColumnType("numeric(18,2)");
+            b.Property(p => p.FlatMonthlyPrice).HasColumnType("numeric(18,2)");
+            b.HasMany(p => p.Features)
+                .WithOne()
+                .HasForeignKey(f => f.PlanId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // PlanFeature — many feature codes per plan, unique within a plan
+        builder.Entity<PlanFeature>(b =>
+        {
+            b.HasKey(f => f.Id);
+            b.Property(f => f.FeatureCode).HasMaxLength(60).IsRequired();
+            b.HasIndex(f => new { f.PlanId, f.FeatureCode }).IsUnique();
+        });
+
+        // TenantSubscription — 1-to-1 with Tenant, cascade delete
+        builder.Entity<TenantSubscription>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.PlanCode).HasMaxLength(50).IsRequired();
+            b.Property(s => s.Status).HasConversion<int>();
+            b.HasIndex(s => s.TenantId).IsUnique();
+            b.HasIndex(s => new { s.Status, s.TrialEndsAt });        // trial-expiry sweeper
+            b.HasIndex(s => new { s.Status, s.CurrentPeriodEnd });   // renewal sweeper
+            b.HasOne<Tenant>()
+                .WithOne()
+                .HasForeignKey<TenantSubscription>(s => s.TenantId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasOne<Plan>()
+                .WithMany()
+                .HasForeignKey(s => s.PlanId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

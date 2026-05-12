@@ -30,6 +30,14 @@ public static class RecurringJobRegistrar
             recurringJobId: "hold-expiry-sweep",
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
             cronExpression: "*/5 * * * *");
+
+        // Trial-expiry sweep (Phase 0). Once a day at 02:00 UTC, flip any
+        // expired trial subscriptions to PastDue so writes are suspended.
+        jobs.AddOrUpdate<TrialExpirySweepJob>(
+            recurringJobId: "trial-expiry-sweep",
+            methodCall:     j => j.ExecuteAsync(CancellationToken.None),
+            cronExpression: "0 2 * * *",
+            options:        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 }
 
