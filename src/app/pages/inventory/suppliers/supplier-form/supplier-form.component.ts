@@ -23,156 +23,202 @@ import { SidePanelRef, SIDE_PANEL_DATA } from 'src/app/shared/side-panel';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, ReactiveFormsModule, RouterModule,
-    MatButtonModule, MatCardModule, MatDatepickerModule, MatNativeDateModule,
+    MatButtonModule, MatDatepickerModule, MatNativeDateModule,
     MatFormFieldModule, MatIconModule, MatInputModule, MatProgressSpinnerModule,
     MatSelectModule, MatSlideToggleModule, TablerIconsModule,
   ],
   template: `
-    <div class="crm-page">
+    <div class="sf-wrap" [class.sf-page]="!isPanelMode">
+
       @if (!isPanelMode) {
-        <div class="page-header">
-          <div class="page-title">
-            <h2>{{ isEdit() ? 'Edit Supplier' : 'New Supplier' }}</h2>
-            <span class="subtitle">
-              {{ isEdit() ? 'Update supplier details and contract dates' : 'Register a new vendor (hotel, transport, activity, guide)' }}
-            </span>
-          </div>
-          <div class="page-actions">
-            <button mat-stroked-button (click)="cancel()">
-              <i-tabler name="arrow-left" class="icon-sm mr-1"></i-tabler> Back
-            </button>
+        <div class="sf-page-header">
+          <button mat-icon-button type="button" (click)="cancel()">
+            <i-tabler name="arrow-left" class="icon-sm"></i-tabler>
+          </button>
+          <div>
+            <h2 class="sf-page-title">{{ isEdit() ? 'Edit Supplier' : 'New Supplier' }}</h2>
+            <p class="sf-page-sub">{{ isEdit() ? 'Update details and contract dates' : 'Register a new vendor' }}</p>
           </div>
         </div>
       }
 
       @if (loading()) {
-        <div class="spinner-wrap"><mat-spinner diameter="36"></mat-spinner></div>
+        <div class="sf-spinner"><mat-spinner diameter="32"></mat-spinner></div>
       } @else {
-        <mat-card class="form-card">
-          <mat-card-content>
-            <form [formGroup]="form" (ngSubmit)="save()" class="supplier-form">
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-2">
-                  <mat-label>Name</mat-label>
-                  <input matInput formControlName="name" maxlength="200" placeholder="e.g. Taj Hotels" />
-                  @if (form.controls.name.touched && form.controls.name.invalid) {
-                    <mat-error>Name is required</mat-error>
-                  }
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Type</mat-label>
-                  <mat-select formControlName="supplierType">
-                    <mat-option value="Hotel">Hotel</mat-option>
-                    <mat-option value="Transport">Transport</mat-option>
-                    <mat-option value="Activity">Activity</mat-option>
-                    <mat-option value="Guide">Guide</mat-option>
-                    <mat-option value="Other">Other</mat-option>
-                  </mat-select>
-                </mat-form-field>
-              </div>
+        <form [formGroup]="form" (ngSubmit)="save()" class="sf">
 
-              <h4 class="section-h">Contact</h4>
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Contact Name</mat-label>
-                  <input matInput formControlName="contactName" maxlength="200" />
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Email</mat-label>
-                  <input matInput type="email" formControlName="contactEmail" maxlength="200" />
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Phone</mat-label>
-                  <input matInput formControlName="contactPhone" maxlength="50" />
-                </mat-form-field>
-              </div>
-
-              <mat-form-field appearance="outline" class="full">
-                <mat-label>Address</mat-label>
-                <textarea matInput formControlName="address" rows="3" maxlength="1000"></textarea>
+          <!-- ── Basic ───────────────────────────────── -->
+          <section class="sf-section">
+            <p class="sf-label">Supplier</p>
+            <div class="sf-grid g2-1">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic" class="span2">
+                <mat-label>Name *</mat-label>
+                <input matInput formControlName="name" maxlength="200" placeholder="e.g. Taj Hotels" />
+                @if (form.controls.name.touched && form.controls.name.invalid) {
+                  <mat-error>Required</mat-error>
+                }
               </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Type</mat-label>
+                <mat-select formControlName="supplierType">
+                  <mat-option value="Hotel">Hotel</mat-option>
+                  <mat-option value="Transport">Transport</mat-option>
+                  <mat-option value="Activity">Activity</mat-option>
+                  <mat-option value="Guide">Guide</mat-option>
+                  <mat-option value="Other">Other</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+          </section>
 
-              <h4 class="section-h">Contract</h4>
-              <div class="form-row">
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Valid From</mat-label>
-                  <input matInput [matDatepicker]="fromPicker" formControlName="contractValidFrom" />
-                  <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
-                  <mat-datepicker #fromPicker></mat-datepicker>
-                </mat-form-field>
-                <mat-form-field appearance="outline" class="flex-1">
-                  <mat-label>Valid To</mat-label>
-                  <input matInput [matDatepicker]="toPicker" formControlName="contractValidTo" />
-                  <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
-                  <mat-datepicker #toPicker></mat-datepicker>
-                </mat-form-field>
+          <div class="sf-sep"></div>
+
+          <!-- ── Contact ─────────────────────────────── -->
+          <section class="sf-section">
+            <p class="sf-label">Contact</p>
+            <div class="sf-grid g3">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Contact Name</mat-label>
+                <input matInput formControlName="contactName" maxlength="200" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Email</mat-label>
+                <input matInput type="email" formControlName="contactEmail" maxlength="200" />
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Phone</mat-label>
+                <input matInput formControlName="contactPhone" maxlength="50" />
+              </mat-form-field>
+            </div>
+            <div class="sf-grid g1 sf-mt">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Address</mat-label>
+                <textarea matInput formControlName="address" rows="2" maxlength="1000"></textarea>
+              </mat-form-field>
+            </div>
+          </section>
+
+          <div class="sf-sep"></div>
+
+          <!-- ── Contract ────────────────────────────── -->
+          <section class="sf-section">
+            <p class="sf-label">Contract</p>
+            <div class="sf-grid g2">
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Valid From</mat-label>
+                <input matInput [matDatepicker]="fromPicker" formControlName="contractValidFrom" />
+                <mat-datepicker-toggle matSuffix [for]="fromPicker"></mat-datepicker-toggle>
+                <mat-datepicker #fromPicker></mat-datepicker>
+              </mat-form-field>
+              <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <mat-label>Valid To</mat-label>
+                <input matInput [matDatepicker]="toPicker" formControlName="contractValidTo" />
+                <mat-datepicker-toggle matSuffix [for]="toPicker"></mat-datepicker-toggle>
+                <mat-datepicker #toPicker></mat-datepicker>
+              </mat-form-field>
+            </div>
+
+            @if (isEdit()) {
+              <div class="sf-toggle-row sf-mt">
+                <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
+                <span class="sf-hint">Inactive suppliers are hidden from new resource creation.</span>
               </div>
+            }
+          </section>
 
-              @if (isEdit()) {
-                <div class="active-row">
-                  <mat-slide-toggle formControlName="isActive">Active</mat-slide-toggle>
-                  <span class="hint">Inactive suppliers are hidden from new resource creation but existing resources keep working.</span>
-                </div>
+          @if (errorMessage()) {
+            <div class="sf-error">
+              <i-tabler name="alert-circle" class="icon-sm"></i-tabler>
+              {{ errorMessage() }}
+            </div>
+          }
+
+          <!-- ── Actions ─────────────────────────────── -->
+          <div class="sf-actions">
+            <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+            <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <mat-spinner diameter="14" class="sf-spinner-btn"></mat-spinner>
+              } @else {
+                <i-tabler [name]="isEdit() ? 'check' : 'plus'" class="icon-sm sf-btn-icon"></i-tabler>
               }
+              {{ isEdit() ? 'Save Changes' : 'Create Supplier' }}
+            </button>
+          </div>
 
-              @if (errorMessage()) {
-                <div class="error-banner">
-                  <i-tabler name="alert-circle" class="icon-sm"></i-tabler>
-                  {{ errorMessage() }}
-                </div>
-              }
-
-              <div class="form-actions">
-                <button mat-button type="button" (click)="cancel()">Cancel</button>
-                <button mat-flat-button color="primary" type="submit" [disabled]="form.invalid || saving()">
-                  @if (saving()) {
-                    <mat-spinner diameter="16" class="btn-spinner"></mat-spinner>
-                  } @else {
-                    <i-tabler [name]="isEdit() ? 'check' : 'plus'" class="icon-sm mr-1"></i-tabler>
-                  }
-                  {{ isEdit() ? 'Save Changes' : 'Create Supplier' }}
-                </button>
-              </div>
-            </form>
-          </mat-card-content>
-        </mat-card>
+        </form>
       }
     </div>
   `,
   styles: [`
-    .crm-page { padding: 24px; }
-    .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; }
-    .page-title h2 { margin: 0; font-size: 22px; font-weight: 600; }
-    .page-title .subtitle { color: #6c757d; font-size: 14px; }
-    .page-actions { display: flex; gap: 8px; }
-    .mr-1 { margin-right: 4px; }
-    .spinner-wrap { display: flex; justify-content: center; padding: 48px; }
+    /* ── Outer wrapper ──────────────────────────── */
+    .sf-wrap { display: block; }
+    .sf-page {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 16px rgba(15,23,42,.07);
+      max-width: 860px;
+    }
+    .sf-page-header {
+      display: flex; align-items: flex-start; gap: 8px; margin-bottom: 20px;
+    }
+    .sf-page-title { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; }
+    .sf-page-sub   { margin: 2px 0 0; font-size: 13px; color: #64748b; }
 
-    .form-card { max-width: 900px; }
-    .form-card mat-card-content { padding: 24px; }
-    .supplier-form { display: flex; flex-direction: column; gap: 0; }
-    .supplier-form .full { width: 100%; }
-    .form-row { display: flex; gap: 16px; }
-    .form-row .flex-1 { flex: 1; }
-    .form-row .flex-2 { flex: 2; }
-    .section-h { margin: 16px 0 12px; font-size: 13px; font-weight: 600; color: #475569; text-transform: uppercase; letter-spacing: 0.4px; }
+    /* ── Loading ────────────────────────────────── */
+    .sf-spinner { display: flex; justify-content: center; padding: 40px; }
 
-    .active-row { display: flex; align-items: center; gap: 12px; margin: 8px 0 16px; }
-    .active-row .hint { color: #64748b; font-size: 12px; }
+    /* ── Form skeleton ──────────────────────────── */
+    .sf { display: flex; flex-direction: column; }
+    .sf-section { padding: 14px 0; }
+    .sf-sep { height: 1px; background: #f1f5f9; }
 
-    .error-banner {
+    /* ── Section label ──────────────────────────── */
+    .sf-label {
+      margin: 0 0 10px;
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: #94a3b8;
+    }
+
+    /* ── CSS grids ──────────────────────────────── */
+    .sf-grid      { display: grid; gap: 8px; }
+    .sf-grid.g1   { grid-template-columns: 1fr; }
+    .sf-grid.g2   { grid-template-columns: repeat(2, 1fr); }
+    .sf-grid.g3   { grid-template-columns: repeat(3, 1fr); }
+    /* 2fr + 1fr for name/type row */
+    .sf-grid.g2-1 { grid-template-columns: 2fr 1fr; }
+    .sf-grid .span2 { grid-column: span 2; }
+    .sf-mt { margin-top: 8px; }
+
+    .sf mat-form-field { width: 100%; }
+
+    /* ── Toggle / hint ──────────────────────────── */
+    .sf-toggle-row { display: flex; align-items: center; gap: 12px; }
+    .sf-hint { color: #64748b; font-size: 12px; }
+
+    /* ── Error banner ───────────────────────────── */
+    .sf-error {
       display: flex; align-items: center; gap: 8px;
-      background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca;
-      padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; font-size: 13px;
+      background: #fef2f2; color: #b91c1c;
+      border: 1px solid #fecaca; border-radius: 8px;
+      padding: 10px 14px; margin-bottom: 4px; font-size: 13px;
     }
 
-    .form-actions {
-      display: flex; justify-content: flex-end; gap: 8px;
-      margin-top: 8px; padding-top: 16px; border-top: 1px solid #f1f5f9;
+    /* ── Actions ────────────────────────────────── */
+    .sf-actions {
+      display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+      padding-top: 12px; border-top: 1px solid #f1f5f9; margin-top: 4px;
     }
-    .btn-spinner { display: inline-block; margin-right: 8px; }
+    .sf-btn-icon  { margin-right: 4px; }
+    .sf-spinner-btn { display: inline-block; margin-right: 6px; }
 
-    @media (max-width: 600px) { .form-row { flex-direction: column; } }
+    @media (max-width: 600px) {
+      .sf-grid.g3 { grid-template-columns: 1fr; }
+      .sf-grid.g2, .sf-grid.g2-1 { grid-template-columns: 1fr; }
+      .sf-grid .span2 { grid-column: span 1; }
+    }
   `],
 })
 export class SupplierFormComponent implements OnInit {

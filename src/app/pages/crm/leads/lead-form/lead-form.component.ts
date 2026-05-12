@@ -2,14 +2,12 @@
 import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { MatDividerModule } from '@angular/material/divider';
 import { LeadsService, LeadWriteBody } from '../../../../core/services/leads.service';
 import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
 import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
@@ -20,147 +18,191 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule, RouterLink,
-    MatCardModule, MatButtonModule, MatIconModule,
+    MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatSnackBarModule, MatDividerModule,
+    MatSnackBarModule,
   ],
   template: `
-    @if (!isPanelMode) {
-      <div class="page-header m-b-24 d-flex align-items-center gap-8">
-        <a mat-icon-button routerLink="/crm/leads"><mat-icon>arrow_back</mat-icon></a>
-        <h2 class="f-s-24 f-w-700 m-0">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h2>
-      </div>
+    <div class="lf-wrap" [class.lf-page]="!isPanelMode">
+
+      @if (!isPanelMode) {
+        <div class="lf-page-header">
+          <a mat-icon-button routerLink="/crm/leads"><mat-icon>arrow_back</mat-icon></a>
+          <h2 class="lf-page-title">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h2>
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="save()" class="lf">
+
+        <!-- ── Contact Details ─────────────────────── -->
+        <section class="lf-section">
+          <p class="lf-section-label">Contact Details</p>
+          <div class="lf-grid g3">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>First Name *</mat-label>
+              <input matInput formControlName="firstName" autocomplete="given-name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Last Name *</mat-label>
+              <input matInput formControlName="lastName" autocomplete="family-name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Email *</mat-label>
+              <input matInput type="email" formControlName="email" autocomplete="email" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Phone</mat-label>
+              <input matInput formControlName="phone" autocomplete="tel" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Company</mat-label>
+              <input matInput formControlName="company" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Job Title</mat-label>
+              <input matInput formControlName="jobTitle" />
+            </mat-form-field>
+          </div>
+        </section>
+
+        <div class="lf-sep"></div>
+
+        <!-- ── Lead Details ────────────────────────── -->
+        <section class="lf-section">
+          <p class="lf-section-label">Lead Details</p>
+          <div class="lf-grid g2">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Status</mat-label>
+              <mat-select formControlName="status">
+                <mat-option value="New">New</mat-option>
+                <mat-option value="Contacted">Contacted</mat-option>
+                <mat-option value="Qualified">Qualified</mat-option>
+                <mat-option value="Unqualified">Unqualified</mat-option>
+                <mat-option value="Converted">Converted</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Source</mat-label>
+              <mat-select formControlName="source">
+                <mat-option value="Website">Website</mat-option>
+                <mat-option value="Referral">Referral</mat-option>
+                <mat-option value="SocialMedia">Social Media</mat-option>
+                <mat-option value="EmailCampaign">Email Campaign</mat-option>
+                <mat-option value="TradeShow">Trade Show</mat-option>
+                <mat-option value="ColdCall">Cold Call</mat-option>
+                <mat-option value="Partner">Partner</mat-option>
+                <mat-option value="Other">Other</mat-option>
+              </mat-select>
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Score (0–100)</mat-label>
+              <input matInput type="number" min="0" max="100" formControlName="score" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Est. Value (USD)</mat-label>
+              <input matInput type="number" min="0" formControlName="estimatedValue" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Assigned To</mat-label>
+              <input matInput formControlName="assignedTo" placeholder="Agent name" />
+            </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Tags (comma-separated)</mat-label>
+              <input matInput formControlName="tagsRaw" placeholder="Europe, VIP" />
+            </mat-form-field>
+          </div>
+          <div class="lf-grid g1 lf-mt">
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+              <mat-label>Notes</mat-label>
+              <textarea matInput formControlName="notes" rows="3"></textarea>
+            </mat-form-field>
+          </div>
+        </section>
+
+        <!-- ── Actions ─────────────────────────────── -->
+        <div class="lf-actions">
+          @if (isPanelMode) {
+            <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+          } @else {
+            <a mat-stroked-button routerLink="/crm/leads">Cancel</a>
+          }
+          <button mat-flat-button color="primary" type="submit"
+                  [disabled]="form.invalid || saving()">
+            <mat-icon class="btn-icon">save</mat-icon>
+            {{ saving() ? 'Saving…' : (isNew() ? 'Create Lead' : 'Save Changes') }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  `,
+  styles: [`
+    /* ── Outer wrapper ──────────────────────────── */
+    .lf-wrap { display: block; }
+
+    /* Page-mode: single card shell */
+    .lf-page {
+      background: #fff;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 2px 16px rgba(15,23,42,.07);
+      max-width: 860px;
+    }
+    .lf-page-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .lf-page-title {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 700;
+      color: #0f172a;
     }
 
-    <form [formGroup]="form" (ngSubmit)="save()">
-      <mat-card class="cardWithShadow m-b-24">
-        <mat-card-content class="p-24">
-          <mat-card-title class="m-b-16">Contact Details</mat-card-title>
-          <div class="row">
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>First Name</mat-label>
-                <input matInput formControlName="firstName" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Last Name</mat-label>
-                <input matInput formControlName="lastName" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Email</mat-label>
-                <input matInput type="email" formControlName="email" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Phone</mat-label>
-                <input matInput formControlName="phone" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Company</mat-label>
-                <input matInput formControlName="company" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-4 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Job Title</mat-label>
-                <input matInput formControlName="jobTitle" />
-              </mat-form-field>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    /* ── Form skeleton ──────────────────────────── */
+    .lf { display: flex; flex-direction: column; }
 
-      <mat-card class="cardWithShadow m-b-24">
-        <mat-card-content class="p-24">
-          <mat-card-title class="m-b-16">Lead Details</mat-card-title>
-          <div class="row">
-            <div class="col-md-3 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Status</mat-label>
-                <mat-select formControlName="status">
-                  <mat-option value="New">New</mat-option>
-                  <mat-option value="Contacted">Contacted</mat-option>
-                  <mat-option value="Qualified">Qualified</mat-option>
-                  <mat-option value="Unqualified">Unqualified</mat-option>
-                  <mat-option value="Converted">Converted</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <div class="col-md-3 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Source</mat-label>
-                <mat-select formControlName="source">
-                  <mat-option value="Website">Website</mat-option>
-                  <mat-option value="Referral">Referral</mat-option>
-                  <mat-option value="SocialMedia">Social Media</mat-option>
-                  <mat-option value="EmailCampaign">Email Campaign</mat-option>
-                  <mat-option value="TradeShow">Trade Show</mat-option>
-                  <mat-option value="ColdCall">Cold Call</mat-option>
-                  <mat-option value="Partner">Partner</mat-option>
-                  <mat-option value="Other">Other</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-            <div class="col-md-3 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Score (0-100)</mat-label>
-                <input matInput type="number" min="0" max="100" formControlName="score" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-3 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Est. Value (USD)</mat-label>
-                <input matInput type="number" min="0" formControlName="estimatedValue" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-6 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Assigned To</mat-label>
-                <input matInput formControlName="assignedTo" placeholder="Agent name" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-6 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Tags (comma-separated)</mat-label>
-                <input matInput formControlName="tagsRaw" placeholder="Europe, VIP" />
-              </mat-form-field>
-            </div>
-            <div class="col-md-12 m-b-16">
-              <mat-form-field appearance="outline" class="w-100">
-                <mat-label>Notes</mat-label>
-                <textarea matInput formControlName="notes" rows="3"></textarea>
-              </mat-form-field>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
+    .lf-section { padding: 14px 0; }
 
-      <mat-card class="cardWithShadow">
-        <mat-card-content class="p-24">
-          <mat-divider class="m-b-16"></mat-divider>
-          <div class="d-flex justify-content-end gap-8">
-            @if (isPanelMode) {
-              <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
-            } @else {
-              <a mat-stroked-button routerLink="/crm/leads">Cancel</a>
-            }
-            <button mat-flat-button color="primary" type="submit"
-                    [disabled]="form.invalid || saving()">
-              <mat-icon>save</mat-icon>
-              {{ saving() ? 'Saving...' : (isNew() ? 'Create' : 'Save Changes') }}
-            </button>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </form>
-  `,
+    .lf-sep {
+      height: 1px;
+      background: #f1f5f9;
+    }
+
+    /* ── Section label ──────────────────────────── */
+    .lf-section-label {
+      margin: 0 0 10px;
+      font-size: 10.5px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+    }
+
+    /* ── CSS grids ──────────────────────────────── */
+    .lf-grid          { display: grid; gap: 8px; }
+    .lf-grid.g1       { grid-template-columns: 1fr; }
+    .lf-grid.g2       { grid-template-columns: repeat(2, 1fr); }
+    .lf-grid.g3       { grid-template-columns: repeat(3, 1fr); }
+    .lf-mt            { margin-top: 8px; }
+
+    /* All fields fill their grid cell */
+    .lf mat-form-field { width: 100%; }
+
+    /* ── Action bar ─────────────────────────────── */
+    .lf-actions {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 8px;
+      padding-top: 12px;
+      border-top: 1px solid #f1f5f9;
+      margin-top: 4px;
+    }
+    .btn-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; }
+  `],
 })
 export class LeadFormComponent implements OnInit {
   private readonly fb        = inject(FormBuilder);
