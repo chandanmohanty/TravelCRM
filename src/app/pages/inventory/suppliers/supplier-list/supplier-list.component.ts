@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatChipsModule } from '@angular/material/chips';
@@ -15,6 +15,8 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { SuppliersService } from 'src/app/core/services/suppliers.service';
 import { SupplierDto, SupplierType } from 'src/app/models/inventory.model';
+import { SidePanelService } from 'src/app/shared/side-panel';
+import { SupplierFormComponent } from '../supplier-form/supplier-form.component';
 
 @Component({
   selector: 'app-supplier-list',
@@ -35,7 +37,7 @@ import { SupplierDto, SupplierType } from 'src/app/models/inventory.model';
           <span class="subtitle">Hotels, transport vendors, activity operators, guides</span>
         </div>
         <div class="page-actions">
-          <button mat-flat-button color="primary" [routerLink]="['/inventory/suppliers/new']">
+          <button mat-flat-button color="primary" (click)="openForm()">
             <i-tabler name="plus" class="icon-sm mr-1"></i-tabler> New Supplier
           </button>
         </div>
@@ -117,7 +119,7 @@ import { SupplierDto, SupplierType } from 'src/app/models/inventory.model';
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>Name</th>
                 <td mat-cell *matCellDef="let s">
-                  <a [routerLink]="['/inventory/suppliers', s.id]" class="supplier-link">{{ s.name }}</a>
+                  <a (click)="openForm(s)" class="supplier-link" style="cursor:pointer">{{ s.name }}</a>
                 </td>
               </ng-container>
               <ng-container matColumnDef="type">
@@ -146,7 +148,7 @@ import { SupplierDto, SupplierType } from 'src/app/models/inventory.model';
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef class="actions-col"></th>
                 <td mat-cell *matCellDef="let s" class="actions-col">
-                  <button mat-icon-button [routerLink]="['/inventory/suppliers', s.id]" matTooltip="Edit">
+                  <button mat-icon-button (click)="openForm(s)" matTooltip="Edit">
                     <i-tabler name="pencil" class="icon-sm"></i-tabler>
                   </button>
                   <button mat-icon-button (click)="remove(s)" matTooltip="Delete">
@@ -207,7 +209,7 @@ import { SupplierDto, SupplierType } from 'src/app/models/inventory.model';
 })
 export class SupplierListComponent implements OnInit {
   private api = inject(SuppliersService);
-  private router = inject(Router);
+  private readonly sidePanel = inject(SidePanelService);
 
   loading = signal(true);
   suppliers = signal<SupplierDto[]>([]);
@@ -215,6 +217,21 @@ export class SupplierListComponent implements OnInit {
   displayedColumns = ['name', 'type', 'contact', 'active', 'actions'];
 
   ngOnInit(): void { this.reload(); }
+
+  openForm(supplier?: SupplierDto): void {
+    const ref = this.sidePanel.open<SupplierFormComponent, { id?: string }, 'saved' | 'cancelled'>(
+      SupplierFormComponent,
+      {
+        title: supplier ? 'Edit Supplier' : 'New Supplier',
+        subtitle: supplier ? supplier.name : 'Add a new vendor',
+        width: '560px',
+        data: { id: supplier?.id },
+      },
+    );
+    ref.afterClosed().subscribe((result) => {
+      if (result === 'saved') this.reload();
+    });
+  }
 
   countOf(type: SupplierType): number {
     return this.suppliers().filter(s => s.supplierType === type).length;

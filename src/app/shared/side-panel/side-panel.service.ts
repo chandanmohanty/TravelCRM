@@ -115,12 +115,17 @@ export class SidePanelService {
       ref._handleClosed(pendingResult);
     };
 
-    // User-initiated close (X, backdrop, Escape).
+    let programmatic = false;
+
+    // User-initiated close (X, backdrop, Escape). Honours disableClose +
+    // setDirty guards; programmatic ref.close(...) sets `programmatic`
+    // first to bypass them.
     const closedSub = panelRef.instance.closed.subscribe(() => {
+      if (!programmatic && !ref._canClose()) return;
+
       // Toggle `open` to false so the leave animation runs, then tear down
-      // once the animation finishes. We approximate the animation duration —
-      // matches the 200ms panel leave + 180ms backdrop leave defined in the
-      // component animations.
+      // once the animation finishes. Duration matches the 200ms panel leave
+      // + 180ms backdrop leave defined in the component animations.
       panelRef.setInput('open', false);
       panelRef.changeDetectorRef.detectChanges();
       setTimeout(() => {
@@ -129,9 +134,10 @@ export class SidePanelService {
       }, 230);
     });
 
-    // Programmatic close via ref.close(result).
+    // Programmatic close via ref.close(result) — bypasses the close guard.
     ref._requestClose = (result?: R) => {
       pendingResult = result;
+      programmatic = true;
       panelRef.instance.close();
     };
 

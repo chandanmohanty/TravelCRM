@@ -12,6 +12,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDividerModule } from '@angular/material/divider';
 import { LeadsService, LeadWriteBody } from '../../../../core/services/leads.service';
 import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
+import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
 
 @Component({
   selector: 'app-lead-form',
@@ -24,10 +25,12 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     MatSnackBarModule, MatDividerModule,
   ],
   template: `
-    <div class="page-header m-b-24 d-flex align-items-center gap-8">
-      <a mat-icon-button routerLink="/crm/leads"><mat-icon>arrow_back</mat-icon></a>
-      <h2 class="f-s-24 f-w-700 m-0">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h2>
-    </div>
+    @if (!isPanelMode) {
+      <div class="page-header m-b-24 d-flex align-items-center gap-8">
+        <a mat-icon-button routerLink="/crm/leads"><mat-icon>arrow_back</mat-icon></a>
+        <h2 class="f-s-24 f-w-700 m-0">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h2>
+      </div>
+    }
 
     <form [formGroup]="form" (ngSubmit)="save()">
       <mat-card class="cardWithShadow m-b-24">
@@ -143,7 +146,11 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
         <mat-card-content class="p-24">
           <mat-divider class="m-b-16"></mat-divider>
           <div class="d-flex justify-content-end gap-8">
-            <a mat-stroked-button routerLink="/crm/leads">Cancel</a>
+            @if (isPanelMode) {
+              <button mat-stroked-button type="button" (click)="cancel()">Cancel</button>
+            } @else {
+              <a mat-stroked-button routerLink="/crm/leads">Cancel</a>
+            }
             <button mat-flat-button color="primary" type="submit"
                     [disabled]="form.invalid || saving()">
               <mat-icon>save</mat-icon>
@@ -156,11 +163,16 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
   `,
 })
 export class LeadFormComponent implements OnInit {
-  private readonly fb     = inject(FormBuilder);
-  private readonly api    = inject(LeadsService);
-  private readonly snack  = inject(MatSnackBar);
-  private readonly route  = inject(ActivatedRoute);
-  private readonly router = inject(Router);
+  private readonly fb        = inject(FormBuilder);
+  private readonly api       = inject(LeadsService);
+  private readonly snack     = inject(MatSnackBar);
+  private readonly route     = inject(ActivatedRoute);
+  private readonly router    = inject(Router);
+  private readonly panelRef  = inject<SidePanelRef<'saved' | 'cancelled'> | null>(
+    SidePanelRef, { optional: true });
+  private readonly panelData = inject<{ id?: string } | null>(
+    SIDE_PANEL_DATA, { optional: true });
+  readonly isPanelMode = !!this.panelRef;
 
   readonly saving = signal(false);
   readonly isNew  = signal(true);
@@ -182,7 +194,7 @@ export class LeadFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.panelData?.id ?? this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
       this.api.get(id).subscribe({
@@ -200,8 +212,15 @@ export class LeadFormComponent implements OnInit {
         },
         error: err => {
           this.snack.open(err?.error?.error ?? 'Failed to load lead.', 'Close', { duration: 3500 });
-          this.router.navigate(['/crm/leads']);
+          if (this.isPanelMode) this.panelRef!.close();
+          else this.router.navigate(['/crm/leads']);
         },
+      });
+    }
+
+    if (this.panelRef) {
+      this.form.valueChanges.subscribe(() => {
+        this.panelRef!.setDirty(this.form.dirty);
       });
     }
   }
@@ -226,20 +245,28 @@ export class LeadFormComponent implements OnInit {
       estimatedValue: v.estimatedValue ?? undefined,
     };
 
-    const id = this.route.snapshot.paramMap.get('id');
+    const id = this.panelData?.id ?? this.route.snapshot.paramMap.get('id');
     const call$ = (id && id !== 'new') ? this.api.update(id, body) : this.api.create(body);
 
     call$.subscribe({
       next: () => {
         this.saving.set(false);
         this.snack.open('Lead saved.', 'Close', { duration: 2500 });
-        this.router.navigate(['/crm/leads']);
+        this.form.markAsPristine();
+        this.panelRef?.setDirty(false);
+        if (this.isPanelMode) this.panelRef!.close('saved');
+        else this.router.navigate(['/crm/leads']);
       },
       error: err => {
         this.saving.set(false);
         this.snack.open(err?.error?.error ?? 'Save failed.', 'Close', { duration: 3500 });
       },
     });
+  }
+
+  cancel(): void {
+    if (this.isPanelMode) this.panelRef!.close();
+    else this.router.navigate(['/crm/leads']);
   }
 
   /**

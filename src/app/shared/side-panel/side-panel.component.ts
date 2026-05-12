@@ -237,6 +237,14 @@ export class SidePanelComponent {
   closeOnEscape = input(true, { transform: booleanAttribute });
   /** Hide the built-in header so the rendered component can supply its own. */
   hideHeader = input(false, { transform: booleanAttribute });
+  /**
+   * Block user-initiated close attempts in template mode. Bind to e.g.
+   * `[disableClose]="saving()"` to prevent dismissal mid-save.
+   *
+   * For imperative usage (via `SidePanelService`), prefer `ref.disableClose()`
+   * — that path also covers the dirty-changes prompt via `ref.setDirty(...)`.
+   */
+  disableClose = input(false, { transform: booleanAttribute });
   /** Extra CSS class applied to the panel element. */
   panelClass = input<string | undefined>(undefined);
 
@@ -264,8 +272,15 @@ export class SidePanelComponent {
     if (this.open() && this.closeOnEscape()) this.close();
   }
 
-  /** Emits `closed`. Parent (template usage) or service (imperative) tears down. */
+  /**
+   * Emits `closed`. In template mode the parent's `(closed)` handler decides
+   * what to do; in imperative mode (via `SidePanelService`) the service
+   * consults `ref._canClose()` before tearing down.
+   *
+   * Honours the `[disableClose]` input for template-mode users.
+   */
   close(): void {
+    if (this.disableClose()) return;
     this.closed.emit();
   }
 }

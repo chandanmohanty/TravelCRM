@@ -15,6 +15,7 @@ import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { SuppliersService } from 'src/app/core/services/suppliers.service';
 import { SupplierType, SupplierWriteBody, SupplierUpdateBody } from 'src/app/models/inventory.model';
+import { SidePanelRef, SIDE_PANEL_DATA } from 'src/app/shared/side-panel';
 
 @Component({
   selector: 'app-supplier-form',
@@ -28,19 +29,21 @@ import { SupplierType, SupplierWriteBody, SupplierUpdateBody } from 'src/app/mod
   ],
   template: `
     <div class="crm-page">
-      <div class="page-header">
-        <div class="page-title">
-          <h2>{{ isEdit() ? 'Edit Supplier' : 'New Supplier' }}</h2>
-          <span class="subtitle">
-            {{ isEdit() ? 'Update supplier details and contract dates' : 'Register a new vendor (hotel, transport, activity, guide)' }}
-          </span>
+      @if (!isPanelMode) {
+        <div class="page-header">
+          <div class="page-title">
+            <h2>{{ isEdit() ? 'Edit Supplier' : 'New Supplier' }}</h2>
+            <span class="subtitle">
+              {{ isEdit() ? 'Update supplier details and contract dates' : 'Register a new vendor (hotel, transport, activity, guide)' }}
+            </span>
+          </div>
+          <div class="page-actions">
+            <button mat-stroked-button (click)="cancel()">
+              <i-tabler name="arrow-left" class="icon-sm mr-1"></i-tabler> Back
+            </button>
+          </div>
         </div>
-        <div class="page-actions">
-          <button mat-stroked-button (click)="cancel()">
-            <i-tabler name="arrow-left" class="icon-sm mr-1"></i-tabler> Back
-          </button>
-        </div>
-      </div>
+      }
 
       @if (loading()) {
         <div class="spinner-wrap"><mat-spinner diameter="36"></mat-spinner></div>
@@ -178,6 +181,12 @@ export class SupplierFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
+  private readonly panelRef = inject<SidePanelRef<'saved' | 'cancelled'> | null>(
+    SidePanelRef, { optional: true });
+  private readonly panelData = inject<{ id?: string } | null>(
+    SIDE_PANEL_DATA, { optional: true });
+  readonly isPanelMode = !!this.panelRef;
+
   loading = signal(true);
   saving = signal(false);
   errorMessage = signal<string | null>(null);
@@ -197,7 +206,13 @@ export class SupplierFormComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
+    if (this.panelRef) {
+      this.form.valueChanges.subscribe(() => {
+        this.panelRef!.setDirty(this.form.dirty);
+      });
+    }
+
+    const id = this.panelData?.id ?? this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.supplierId.set(id);
       this.isEdit.set(true);
@@ -248,7 +263,12 @@ export class SupplierFormComponent implements OnInit {
       : this.api.create(baseBody);
 
     op$.subscribe({
-      next: () => this.router.navigate(['/inventory/suppliers']),
+      next: () => {
+        this.form.markAsPristine();
+        this.panelRef?.setDirty(false);
+        if (this.isPanelMode) this.panelRef!.close('saved');
+        else this.router.navigate(['/inventory/suppliers']);
+      },
       error: (err) => {
         this.errorMessage.set(err?.error?.error ?? 'Save failed');
         this.saving.set(false);
@@ -256,7 +276,10 @@ export class SupplierFormComponent implements OnInit {
     });
   }
 
-  cancel(): void { this.router.navigate(['/inventory/suppliers']); }
+  cancel(): void {
+    if (this.isPanelMode) this.panelRef!.close();
+    else this.router.navigate(['/inventory/suppliers']);
+  }
 
   /** Convert a Date to ISO yyyy-MM-dd (DateOnly serialisation expected by the backend). */
   private toIsoDate(d: Date): string {

@@ -3,8 +3,10 @@ import {
   computed, ViewChild, AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule, Router } from '@angular/router';
+import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { SidePanelService } from '../../../../shared/side-panel';
+import { LeadFormComponent } from '../lead-form/lead-form.component';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
@@ -45,7 +47,7 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
           <span class="subtitle">Track and manage potential customers</span>
         </div>
         <div class="page-actions">
-          <button mat-flat-button color="primary" [routerLink]="['/crm/leads/new']">
+          <button mat-flat-button color="primary" (click)="openForm()">
             <i-tabler name="plus" class="icon-sm mr-1"></i-tabler> Add Lead
           </button>
         </div>
@@ -206,7 +208,7 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
                       <i-tabler name="dots-vertical" class="icon-sm"></i-tabler>
                     </button>
                     <mat-menu #menu="matMenu">
-                      <button mat-menu-item [routerLink]="['/crm/leads', row.id]">
+                      <button mat-menu-item (click)="openForm(row)">
                         <i-tabler name="edit" class="icon-xs mr-1"></i-tabler> Edit
                       </button>
                       <button mat-menu-item (click)="convertLead(row)"
@@ -283,8 +285,9 @@ export class LeadListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort)      sort!: MatSort;
 
-  private readonly api   = inject(LeadsService);
-  private readonly snack = inject(MatSnackBar);
+  private readonly api       = inject(LeadsService);
+  private readonly snack     = inject(MatSnackBar);
+  private readonly sidePanel = inject(SidePanelService);
 
   readonly loading        = signal(true);
   private readonly leads$ = signal<LeadDto[]>([]);
@@ -304,6 +307,21 @@ export class LeadListComponent implements OnInit, AfterViewInit {
   sources: LeadSource[]  = ['Website','Referral','Social Media','Email Campaign','Trade Show','Cold Call','Partner','Other'];
 
   ngOnInit(): void { this.load(); }
+
+  openForm(lead?: LeadDto): void {
+    const ref = this.sidePanel.open<LeadFormComponent, { id?: string }, 'saved' | 'cancelled'>(
+      LeadFormComponent,
+      {
+        title:    lead ? 'Edit Lead' : 'New Lead',
+        subtitle: lead ? `${lead.firstName} ${lead.lastName}` : 'Capture a new prospect',
+        width:    '560px',
+        data:     { id: lead?.id },
+      },
+    );
+    ref.afterClosed().subscribe((result) => {
+      if (result === 'saved') this.load();
+    });
+  }
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;

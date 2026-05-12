@@ -104,6 +104,15 @@ export const routes: Routes = [
         loadChildren: () =>
           import('./pages/inventory/inventory.routes').then((m) => m.InventoryRoutes),
       },
+      {
+        // Developer sandbox for shared UI primitives. Not user-facing.
+        path: 'playground/side-panel',
+        loadComponent: () =>
+          import('./pages/playground/side-panel-demo/side-panel-demo.component').then(
+            (m) => m.SidePanelDemoComponent,
+          ),
+        data: { title: 'Side Panel Playground' },
+      },
     ],
   },
   {

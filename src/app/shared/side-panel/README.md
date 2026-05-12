@@ -111,8 +111,51 @@ export class LeadListComponent {
 
 | Member | Notes |
 |---|---|
-| `close(result?: R)` | Dismiss with optional payload delivered to `afterClosed()`. |
+| `close(result?: R)` | Dismiss with optional payload delivered to `afterClosed()`. **Bypasses** the close guards — for explicit close from inside the rendered component (e.g. after a successful save). |
 | `afterClosed(): Observable<R \| undefined>` | Emits exactly once when the panel finishes closing (after the leave animation). |
+| `disableClose()` / `enableClose()` | Block / re-allow user-initiated close attempts (X, backdrop, Escape). Useful while a save is in flight. Does **not** affect programmatic `close(...)`. |
+| `setDirty(dirty: boolean)` | When `true`, user-initiated close attempts prompt `confirm("You have unsaved changes…")` before closing. Typically wired to `form.dirty`. |
+| `setDirtyConfirmMessage(msg: string)` | Customize the confirmation prompt text. |
+
+### Discard-changes guard recipe
+
+Wire the form's `dirty` state into the panel so backdrop / Esc / X attempts prompt before discarding edits:
+
+```ts
+import { effect, inject } from '@angular/core';
+import { SidePanelRef } from 'src/app/shared/side-panel';
+
+export class SupplierFormComponent {
+  private readonly ref = inject(SidePanelRef, { optional: true });
+  // …form definition…
+
+  constructor() {
+    // Only wire the guard when we're actually inside a side panel
+    // (the same component still works as a routed full-page form).
+    if (this.ref) {
+      effect(() => this.ref!.setDirty(this.form.dirty));
+    }
+  }
+
+  save() {
+    this.api.update(this.id, this.form.value).subscribe(() => {
+      this.ref?.close('saved');   // explicit close — no prompt
+    });
+  }
+}
+```
+
+To block close entirely while a save is in flight:
+
+```ts
+save() {
+  this.ref?.disableClose();
+  this.api.update(...).subscribe({
+    next:  () => this.ref?.close('saved'),
+    error: () => this.ref?.enableClose(),
+  });
+}
+```
 
 ### `SIDE_PANEL_DATA`
 
