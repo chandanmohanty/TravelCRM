@@ -1,0 +1,39 @@
+%%{init: { 'theme': 'base', 'themeVariables': { 'fontFamily': 'Arial', 'fontSize': '14px' } } }%%
+flowchart TB
+
+  %% ── Row 1: Identity / Platform / Tenant Settings ─────────────────
+  subgraph ROW1 [" "]
+    direction LR
+
+    IDENTITY["<b>🔐 Identity &amp; Access</b><br/>━━━━━━━━━━━━━━━━━━━<br/>7 modules — all <b>Full ✅</b><br/><br/>Authentication · Forgot/Reset<br/>Users · Roles · Departments<br/>Profile · Permissions Catalog"]
+
+    PLATFORM["<b>🏢 Platform Admin</b><br/>━━━━━━━━━━━━━━━━━━━<br/>5 modules — all <b>Full ✅</b><br/><br/>Tenant Management<br/>Dashboard · Brand · Configs<br/>Data Reset"]
+
+    TENANT["<b>⚙️ Tenant Settings</b><br/>━━━━━━━━━━━━━━━━━━━<br/>11 modules — all <b>Full ✅</b><br/><br/>Brand · System · Invoice<br/>Email · WhatsApp · Storage<br/>AI · Locale · Scheduled Tasks<br/>Task Types · Inventory TTL"]
+  end
+
+  %% ── Row 2: CRM / Inventory ────────────────────────────────────────
+  subgraph ROW2 [" "]
+    direction LR
+
+    CRM["<b>📋 CRM</b><br/>━━━━━━━━━━━━━━━━━━━<br/>4 <b>Full ✅</b> · 7 <b>Stubs ⚠️</b><br/><br/><b>Full</b>: Leads · Tasks ·<br/>Time Entries · Reminders<br/><br/><b>Stubs</b>: Companies · Customers ·<br/>Bookings · Packages · Destinations ·<br/>Pipeline · Reports"]
+
+    INVENTORY["<b>🏨 Inventory Foundation</b><br/>━━━━━━━━━━━━━━━━━━━<br/>1 <b>Full ✅</b> · 3 <b>Backend 🚧</b> · 1 <b>Hook 🪝</b><br/><br/><b>Full</b>: Suppliers (list + form UI)<br/><br/><b>Backend-only</b>:<br/>Resources · Calendar · Holds<br/>+ Hangfire 5-min sweep<br/><br/><b>Hook</b>: IResourcePricing"]
+  end
+
+  %% ── Row 3: Infrastructure ─────────────────────────────────────────
+  INFRA["<b>🛠️ Cross-cutting Infrastructure</b><br/>━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━<br/>Multi-tenancy · JWT auth · ApiEnvelope filter · FluentValidation pipeline<br/>Audit interceptor · CorrelationId middleware · File storage (Local + S3)<br/>Hangfire jobs (heartbeat · overdue tasks · hold sweep) · Serilog · PostgreSQL via EF Core"]
+
+  ROW1 --> ROW2 --> INFRA
+
+  %% ── Styling ───────────────────────────────────────────────────────
+  classDef green fill:#D4F4DD,stroke:#166534,stroke-width:2.5px,color:#052E16
+  classDef mixed fill:#FFF9DB,stroke:#854D0E,stroke-width:2.5px,color:#3F2D00
+  classDef infra fill:#F1F5F9,stroke:#334155,stroke-width:2.5px,color:#0F172A
+
+  class IDENTITY,PLATFORM,TENANT green
+  class CRM,INVENTORY mixed
+  class INFRA infra
+
+  style ROW1 fill:transparent,stroke-width:0px
+  style ROW2 fill:transparent,stroke-width:0px

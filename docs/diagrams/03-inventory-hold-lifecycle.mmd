@@ -1,0 +1,36 @@
+%%{init: { 'theme': 'base', 'themeVariables': { 'fontFamily': 'Arial', 'fontSize': '14px' } } }%%
+stateDiagram-v2
+  direction LR
+
+  [*] --> Held : CreateHold<br/>(checks availability +<br/>FOR UPDATE row lock on PG)
+
+  Held --> Confirmed : ConfirmHold<br/>(within ExpiresAt window)
+  Held --> Released  : ReleaseHold<br/>(manual cancel)
+  Held --> Expired   : HoldExpirySweepJob<br/>(every 5 min, Hangfire)
+  Held --> Held      : ExtendHold<br/>(max 3 extensions,<br/>adds TenantSettings.HoldTtlHours)
+
+  Confirmed --> Released : ReleaseHold<br/>(post-confirmation cancel)
+
+  Released --> [*]
+  Expired  --> [*]
+
+  note right of Held
+    Slot rules:
+      whole-day collides with everything
+      slot collides with same slot OR whole-day
+    Quantity rules:
+      AssetResource → quantity must be 1
+      PoolResource  → quantity ≤ DefaultCapacity (overridable per date via Calendar)
+  end note
+
+  note right of Confirmed
+    ExpiresAt is cleared on confirmation.
+    A confirmed hold is the source of truth
+    for future booking integrations.
+  end note
+
+  note right of Expired
+    Terminal state.
+    ReleaseHold rejects: "Hold is in terminal state".
+    Capacity freed for the next CreateHold.
+  end note

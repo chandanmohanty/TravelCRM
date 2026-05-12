@@ -1,0 +1,74 @@
+%%{init: { 'theme': 'base', 'themeVariables': { 'primaryColor': '#1F3A93', 'primaryTextColor': '#fff', 'primaryBorderColor': '#0F1E4E', 'lineColor': '#475569', 'fontFamily': 'Arial', 'fontSize': '14px' } } }%%
+flowchart TB
+
+  %% ── Actors ─────────────────────────────────────────────────────────
+  subgraph ACTORS [Actors]
+    direction LR
+    TENANT([Tenant User<br/>Admin · Manager · Read-only])
+    PLATFORM([Platform Admin])
+  end
+
+  %% ── Frontend ──────────────────────────────────────────────────────
+  subgraph FE [Angular Frontend — http://localhost:4200]
+    direction TB
+    FE_AUTH["Auth Pages<br/>login · forgot · reset"]
+    FE_LAYOUT["Full Layout Shell<br/>sidebar · header · apps mega-menu"]
+    FE_PAGES["Feature Pages<br/>Leads · Tasks · Suppliers · Settings · Platform Admin"]
+    FE_CORE["Core Services<br/>auth · http interceptors · permission guards"]
+    FE_AUTH --> FE_LAYOUT
+    FE_LAYOUT --> FE_PAGES
+    FE_PAGES --> FE_CORE
+  end
+
+  %% ── Backend API ────────────────────────────────────────────────────
+  subgraph BE [ASP.NET Core API — http://localhost:5044]
+    direction TB
+    BE_GATE["Middleware Gate<br/>JWT auth · Tenant context · CorrelationId · Audit"]
+    BE_MEDIATR["MediatR Pipeline<br/>Validation · Transactional · Audit Behaviours"]
+    BE_FEATURES["Feature Modules — CQRS<br/>Auth · Identity · Leads · Tasks · Reminders<br/>Inventory · Settings · Branding · Storage · Email · Platform"]
+    BE_DOMAIN["Domain Entities<br/>Tenant · User · Role · Lead · Task · Supplier · Resource · ResourceHold · …"]
+    BE_GATE --> BE_MEDIATR --> BE_FEATURES --> BE_DOMAIN
+  end
+
+  %% ── Persistence + Jobs ─────────────────────────────────────────────
+  subgraph PERSIST [Persistence & Background]
+    direction TB
+    PG[("PostgreSQL<br/>travelcrm database")]
+    HANGFIRE["Hangfire<br/>heartbeat · overdue tasks · hold expiry sweep"]
+    LOGS["Serilog<br/>console + file + optional Seq"]
+  end
+
+  %% ── External Integrations ──────────────────────────────────────────
+  subgraph EXT [External Integrations]
+    direction TB
+    SMTP["SMTP<br/>SendGrid · Office365 · custom"]
+    S3["S3-compatible<br/>storage backend"]
+    WHATSAPP["Wati WhatsApp API"]
+    AI["AI Providers<br/>Anthropic · OpenAI · others"]
+  end
+
+  %% ── Edges ─────────────────────────────────────────────────────────
+  TENANT --> FE
+  PLATFORM --> FE
+  FE -- "REST /api/* + JWT" --> BE
+  BE_DOMAIN -- "EF Core (Npgsql)" --> PG
+  BE_FEATURES -- "Schedule jobs" --> HANGFIRE
+  HANGFIRE -- "queue + leases" --> PG
+  BE_GATE -- "Structured logs<br/>+ CorrelationId" --> LOGS
+  BE_FEATURES -- "Tenant SMTP" --> SMTP
+  BE_FEATURES -- "Brand assets · uploads" --> S3
+  BE_FEATURES -- "Notifications" --> WHATSAPP
+  BE_FEATURES -- "AI completions" --> AI
+
+  %% ── Styling ───────────────────────────────────────────────────────
+  classDef actor fill:#E0E7FF,stroke:#3730A3,stroke-width:2px,color:#1E1B4B
+  classDef fe    fill:#DCFCE7,stroke:#166534,stroke-width:2px,color:#052E16
+  classDef be    fill:#DBEAFE,stroke:#1E3A8A,stroke-width:2px,color:#0F172A
+  classDef store fill:#FEF3C7,stroke:#78350F,stroke-width:2px,color:#451A03
+  classDef ext   fill:#FFE4E6,stroke:#7F1D1D,stroke-width:2px,color:#450A0A
+
+  class TENANT,PLATFORM actor
+  class FE_AUTH,FE_LAYOUT,FE_PAGES,FE_CORE fe
+  class BE_GATE,BE_MEDIATR,BE_FEATURES,BE_DOMAIN be
+  class PG,HANGFIRE,LOGS store
+  class SMTP,S3,WHATSAPP,AI ext
