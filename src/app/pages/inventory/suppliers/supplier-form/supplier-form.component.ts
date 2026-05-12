@@ -151,20 +151,39 @@ import { SidePanelRef, SIDE_PANEL_DATA } from 'src/app/shared/side-panel';
     </div>
   `,
   styles: [`
+    /* ── Design tokens ──────────────────────────── */
+    :host {
+      --sf-bg:       #ffffff;
+      --sf-border:   #f1f5f9;
+      --sf-shadow:   rgba(15, 23, 42, .07);
+      --sf-text-hi:  #0f172a;
+      --sf-text-lo:  #64748b;
+      --sf-text-dim: #94a3b8;
+      --sf-err-bg:   #fef2f2;
+      --sf-err-text: #b91c1c;
+      --sf-err-bdr:  #fecaca;
+    }
+    :host-context(.dark-theme) {
+      --sf-bg:       #1a2537;
+      --sf-border:   #2e3f50;
+      --sf-shadow:   rgba(0, 0, 0, .22);
+      --sf-text-hi:  rgba(255, 255, 255, .90);
+      --sf-text-lo:  rgba(255, 255, 255, .50);
+      --sf-text-dim: rgba(255, 255, 255, .35);
+      --sf-err-bg:   rgba(185, 28, 28, .15);
+      --sf-err-text: #fca5a5;
+      --sf-err-bdr:  rgba(239, 68, 68, .30);
+    }
+
     /* ── Outer wrapper ──────────────────────────── */
     .sf-wrap { display: block; }
     .sf-page {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 16px rgba(15,23,42,.07);
-      max-width: 860px;
+      background: var(--sf-bg); border-radius: 12px; padding: 24px;
+      box-shadow: 0 2px 16px var(--sf-shadow); max-width: 860px;
     }
-    .sf-page-header {
-      display: flex; align-items: flex-start; gap: 8px; margin-bottom: 20px;
-    }
-    .sf-page-title { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; }
-    .sf-page-sub   { margin: 2px 0 0; font-size: 13px; color: #64748b; }
+    .sf-page-header { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 20px; }
+    .sf-page-title  { margin: 0; font-size: 20px; font-weight: 700; color: var(--sf-text-hi); }
+    .sf-page-sub    { margin: 2px 0 0; font-size: 13px; color: var(--sf-text-lo); }
 
     /* ── Loading ────────────────────────────────── */
     .sf-spinner { display: flex; justify-content: center; padding: 40px; }
@@ -172,14 +191,14 @@ import { SidePanelRef, SIDE_PANEL_DATA } from 'src/app/shared/side-panel';
     /* ── Form skeleton ──────────────────────────── */
     .sf { display: flex; flex-direction: column; }
     .sf-section { padding: 14px 0; }
-    .sf-sep { height: 1px; background: #f1f5f9; }
+    .sf-sep { height: 1px; background: var(--sf-border); }
 
     /* ── Section label ──────────────────────────── */
     .sf-label {
       margin: 0 0 10px;
       font-size: 10.5px; font-weight: 700;
       text-transform: uppercase; letter-spacing: 0.8px;
-      color: #94a3b8;
+      color: var(--sf-text-dim);
     }
 
     /* ── CSS grids ──────────────────────────────── */
@@ -187,31 +206,29 @@ import { SidePanelRef, SIDE_PANEL_DATA } from 'src/app/shared/side-panel';
     .sf-grid.g1   { grid-template-columns: 1fr; }
     .sf-grid.g2   { grid-template-columns: repeat(2, 1fr); }
     .sf-grid.g3   { grid-template-columns: repeat(3, 1fr); }
-    /* 2fr + 1fr for name/type row */
     .sf-grid.g2-1 { grid-template-columns: 2fr 1fr; }
     .sf-grid .span2 { grid-column: span 2; }
     .sf-mt { margin-top: 8px; }
-
     .sf mat-form-field { width: 100%; }
 
     /* ── Toggle / hint ──────────────────────────── */
     .sf-toggle-row { display: flex; align-items: center; gap: 12px; }
-    .sf-hint { color: #64748b; font-size: 12px; }
+    .sf-hint { color: var(--sf-text-lo); font-size: 12px; }
 
     /* ── Error banner ───────────────────────────── */
     .sf-error {
       display: flex; align-items: center; gap: 8px;
-      background: #fef2f2; color: #b91c1c;
-      border: 1px solid #fecaca; border-radius: 8px;
+      background: var(--sf-err-bg); color: var(--sf-err-text);
+      border: 1px solid var(--sf-err-bdr); border-radius: 8px;
       padding: 10px 14px; margin-bottom: 4px; font-size: 13px;
     }
 
     /* ── Actions ────────────────────────────────── */
     .sf-actions {
       display: flex; justify-content: flex-end; align-items: center; gap: 8px;
-      padding-top: 12px; border-top: 1px solid #f1f5f9; margin-top: 4px;
+      padding-top: 12px; border-top: 1px solid var(--sf-border); margin-top: 4px;
     }
-    .sf-btn-icon  { margin-right: 4px; }
+    .sf-btn-icon    { margin-right: 4px; }
     .sf-spinner-btn { display: inline-block; margin-right: 6px; }
 
     @media (max-width: 600px) {

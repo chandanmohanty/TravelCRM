@@ -240,85 +240,120 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     </div>
   `,
   styles: [`
+    /* ══════════════════════════════════════════════
+       Design tokens — one block per theme.
+       All rules below reference var(--ll-*) only;
+       no hardcoded palette values past this section.
+       ══════════════════════════════════════════════ */
+
+    /* Light */
+    :host {
+      --ll-bg:           #ffffff;
+      --ll-bg-alt:       #f8fafc;
+      --ll-bg-header:    #fafafa;
+      --ll-border:       #f1f5f9;
+      --ll-border-input: #e2e8f0;
+      --ll-shadow:       rgba(15, 23, 42, .07);
+      --ll-text-hi:      #0f172a;
+      --ll-text:         #1e293b;
+      --ll-text-lo:      #334155;
+      --ll-text-muted:   #64748b;
+      --ll-text-dim:     #94a3b8;
+    }
+    /* Dark — mirrors _dark-theme-variables.scss tokens */
+    :host-context(.dark-theme) {
+      --ll-bg:           #1a2537;   /* --mat-sys-surface          */
+      --ll-bg-alt:       #1f2a3d;   /* --mat-sys-surface-container-low */
+      --ll-bg-header:    #1c2840;
+      --ll-border:       #2e3f50;   /* --mat-sys-outline-variant  */
+      --ll-border-input: #2e3f50;
+      --ll-shadow:       rgba(0, 0, 0, .22);
+      --ll-text-hi:      rgba(255, 255, 255, .90);
+      --ll-text:         rgba(255, 255, 255, .80);
+      --ll-text-lo:      rgba(255, 255, 255, .65);
+      --ll-text-muted:   rgba(255, 255, 255, .48);
+      --ll-text-dim:     rgba(255, 255, 255, .32);
+    }
+
     /* ── Page shell ─────────────────────────────── */
     .ll-page { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
 
     /* ── Header ─────────────────────────────────── */
-    .ll-header {
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .ll-title { margin: 0; font-size: 20px; font-weight: 700; color: #0f172a; line-height: 1.2; }
-    .ll-sub   { margin: 2px 0 0; font-size: 13px; color: #64748b; }
-    .ll-add-btn { height: 36px; font-size: 13px; font-weight: 600; border-radius: 8px; }
+    .ll-header { display: flex; justify-content: space-between; align-items: center; }
+    .ll-title  { margin: 0; font-size: 20px; font-weight: 700; color: var(--ll-text-hi); line-height: 1.2; }
+    .ll-sub    { margin: 2px 0 0; font-size: 13px; color: var(--ll-text-muted); }
+    .ll-add-btn  { height: 36px; font-size: 13px; font-weight: 600; border-radius: 8px; }
     .ll-btn-icon { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
 
     /* ── KPI strip ──────────────────────────────── */
     .ll-stats {
       display: flex; align-items: center;
-      background: #fff; border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(15,23,42,.07);
-      padding: 0 4px;
+      background: var(--ll-bg); border-radius: 10px;
+      box-shadow: 0 1px 4px var(--ll-shadow); padding: 0 4px;
     }
     .ll-stat {
       display: flex; align-items: center; gap: 10px;
       padding: 14px 20px; flex: 1;
     }
-    .ll-stat-sep {
-      width: 1px; height: 32px; background: #f1f5f9; flex-shrink: 0;
-    }
+    .ll-stat-sep { width: 1px; height: 32px; background: var(--ll-border); flex-shrink: 0; }
     .ll-stat-icon {
       width: 34px; height: 34px; border-radius: 8px;
       background: var(--c); color: var(--t);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+      transition: background 200ms;
+    }
+    /* Dark: replace per-icon palette with uniform glass tint so icons
+       stay visible without fighting the dark background */
+    :host-context(.dark-theme) .ll-stat-icon {
+      background: rgba(255, 255, 255, .08) !important;
     }
     .ll-stat-icon i-tabler { width: 18px; height: 18px; }
     .ll-stat-body { display: flex; flex-direction: column; line-height: 1; }
-    .ll-stat-num  { font-size: 20px; font-weight: 700; color: #0f172a; }
-    .ll-stat-lbl  { font-size: 11.5px; color: #64748b; margin-top: 3px; }
+    .ll-stat-num  { font-size: 20px; font-weight: 700; color: var(--ll-text-hi); }
+    .ll-stat-lbl  { font-size: 11.5px; color: var(--ll-text-muted); margin-top: 3px; }
 
     /* ── Loading ────────────────────────────────── */
     .ll-loading { display: flex; justify-content: center; padding: 40px; }
 
     /* ── Main card ──────────────────────────────── */
     .ll-card {
-      background: #fff; border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(15,23,42,.07);
-      overflow: hidden;
+      background: var(--ll-bg); border-radius: 10px;
+      box-shadow: 0 1px 4px var(--ll-shadow); overflow: hidden;
     }
 
     /* ── Filter toolbar ─────────────────────────── */
     .ll-toolbar {
       display: flex; align-items: center; gap: 10px;
-      padding: 10px 16px;
-      border-bottom: 1px solid #f1f5f9;
+      padding: 10px 16px; border-bottom: 1px solid var(--ll-border);
     }
     .ll-search-wrap {
       flex: 1; display: flex; align-items: center; gap: 8px;
-      background: #f8fafc; border: 1px solid #e2e8f0;
+      background: var(--ll-bg-alt); border: 1px solid var(--ll-border-input);
       border-radius: 8px; padding: 0 12px; height: 38px;
     }
-    .ll-search-icon { width: 16px; height: 16px; color: #94a3b8; flex-shrink: 0; }
+    .ll-search-icon  { width: 16px; height: 16px; color: var(--ll-text-dim); flex-shrink: 0; }
     .ll-search-input {
       border: none; background: transparent; outline: none;
-      font-size: 13px; color: #0f172a; width: 100%;
+      font-size: 13px; color: var(--ll-text); width: 100%;
     }
-    .ll-search-input::placeholder { color: #94a3b8; }
+    .ll-search-input::placeholder { color: var(--ll-text-dim); }
     .ll-filter-field { width: 140px; }
 
     /* ── Table ──────────────────────────────────── */
     .ll-table-wrap { overflow-x: auto; }
     .ll-table { width: 100%; }
 
-    /* Compact header + cells */
     .ll-table .mat-mdc-header-cell {
       font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: 0.5px; color: #94a3b8;
-      padding: 0 12px; height: 36px; border-bottom: 1px solid #f1f5f9;
-      background: #fafafa;
+      letter-spacing: 0.5px; color: var(--ll-text-dim);
+      padding: 0 12px; height: 36px;
+      border-bottom: 1px solid var(--ll-border);
+      background: var(--ll-bg-header);
     }
     .ll-table .mat-mdc-cell {
-      padding: 0 12px; height: 46px; border-bottom: 1px solid #f8fafc;
-      font-size: 13px; color: #1e293b;
+      padding: 0 12px; height: 46px;
+      border-bottom: 1px solid var(--ll-border);
+      font-size: 13px; color: var(--ll-text);
     }
 
     /* ── Name cell ──────────────────────────────── */
@@ -328,16 +363,16 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
-    .ll-name-text  { display: flex; flex-direction: column; line-height: 1.2; }
-    .ll-name-primary   { font-size: 13px; font-weight: 600; color: #0f172a; }
-    .ll-name-secondary { font-size: 11.5px; color: #94a3b8; }
+    .ll-name-text      { display: flex; flex-direction: column; line-height: 1.2; }
+    .ll-name-primary   { font-size: 13px; font-weight: 600; color: var(--ll-text-hi); }
+    .ll-name-secondary { font-size: 11.5px; color: var(--ll-text-dim); }
 
     /* ── Other cells ────────────────────────────── */
-    .ll-company { font-size: 13px; color: #334155; }
-    .ll-muted   { font-size: 12.5px; color: #64748b; }
-    .ll-value   { font-size: 13px; font-weight: 600; color: #0f172a; }
+    .ll-company { font-size: 13px; color: var(--ll-text-lo); }
+    .ll-muted   { font-size: 12.5px; color: var(--ll-text-muted); }
+    .ll-value   { font-size: 13px; font-weight: 600; color: var(--ll-text-hi); }
 
-    /* ── Status badge ───────────────────────────── */
+    /* ── Status badge — light ───────────────────── */
     .ll-badge {
       display: inline-block; padding: 3px 9px; border-radius: 20px;
       font-size: 11.5px; font-weight: 600; white-space: nowrap;
@@ -348,28 +383,40 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     .status-unqualified { background: #fee2e2; color: #b91c1c; }
     .status-converted   { background: #f3e8ff; color: #7e22ce; }
 
+    /* ── Status badge — dark (tinted glass) ─────── */
+    :host-context(.dark-theme) .status-new         { background: rgba(59, 130, 246, .18); color: #93c5fd; }
+    :host-context(.dark-theme) .status-contacted   { background: rgba(245, 158, 11, .18); color: #fcd34d; }
+    :host-context(.dark-theme) .status-qualified   { background: rgba(34, 197, 94,  .18); color: #86efac; }
+    :host-context(.dark-theme) .status-unqualified { background: rgba(239, 68,  68,  .18); color: #fca5a5; }
+    :host-context(.dark-theme) .status-converted   { background: rgba(168, 85, 247, .18); color: #d8b4fe; }
+
     /* ── Score cell ─────────────────────────────── */
-    .ll-score { display: flex; flex-direction: column; gap: 3px; min-width: 72px; }
+    .ll-score    { display: flex; flex-direction: column; gap: 3px; min-width: 72px; }
     .ll-score-num { font-size: 13px; font-weight: 700; line-height: 1; }
-    .ll-bar   { height: 3px; border-radius: 2px; }
-    .score-high { color: #16a34a; }
-    .score-mid  { color: #d97706; }
-    .score-low  { color: #dc2626; }
+    .ll-bar      { height: 3px; border-radius: 2px; }
+    .score-high  { color: #16a34a; }
+    .score-mid   { color: #d97706; }
+    .score-low   { color: #dc2626; }
+    /* Brighter palette on dark backgrounds */
+    :host-context(.dark-theme) .score-high { color: #4ade80; }
+    :host-context(.dark-theme) .score-mid  { color: #fbbf24; }
+    :host-context(.dark-theme) .score-low  { color: #f87171; }
 
     /* ── Row hover ──────────────────────────────── */
     .ll-row { cursor: pointer; transition: background 120ms; }
-    .ll-row:hover .mat-mdc-cell { background: #f8fafc; }
+    .ll-row:hover .mat-mdc-cell { background: var(--ll-bg-alt); }
 
     /* ── Actions cell ───────────────────────────── */
     .ll-actions-cell { width: 40px; text-align: right; }
     .ll-menu-btn { width: 30px; height: 30px; line-height: 30px; }
-    .ll-icon-sm { width: 16px; height: 16px; }
-    .ll-icon-xs { width: 14px; height: 14px; }
-    .ll-mr      { margin-right: 6px; }
+    .ll-icon-sm  { width: 16px; height: 16px; }
+    .ll-icon-xs  { width: 14px; height: 14px; }
+    .ll-mr       { margin-right: 6px; }
     .ll-danger-item { color: #dc2626; }
+    :host-context(.dark-theme) .ll-danger-item { color: #f87171; }
 
     /* ── Paginator ──────────────────────────────── */
-    .ll-paginator { border-top: 1px solid #f1f5f9; }
+    .ll-paginator { border-top: 1px solid var(--ll-border); }
 
     /* ── Responsive ─────────────────────────────── */
     @media (max-width: 768px) {

@@ -137,69 +137,61 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
     </div>
   `,
   styles: [`
+    /* ── Design tokens ──────────────────────────── */
+    :host {
+      --lf-bg:      #ffffff;
+      --lf-border:  #f1f5f9;
+      --lf-shadow:  rgba(15, 23, 42, .07);
+      --lf-text-hi: #0f172a;
+      --lf-text-dim:#94a3b8;
+    }
+    :host-context(.dark-theme) {
+      --lf-bg:      #1a2537;
+      --lf-border:  #2e3f50;
+      --lf-shadow:  rgba(0, 0, 0, .22);
+      --lf-text-hi: rgba(255, 255, 255, .90);
+      --lf-text-dim:rgba(255, 255, 255, .38);
+    }
+
     /* ── Outer wrapper ──────────────────────────── */
     .lf-wrap { display: block; }
 
     /* Page-mode: single card shell */
     .lf-page {
-      background: #fff;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 2px 16px rgba(15,23,42,.07);
+      background: var(--lf-bg);
+      border-radius: 12px; padding: 24px;
+      box-shadow: 0 2px 16px var(--lf-shadow);
       max-width: 860px;
     }
-    .lf-page-header {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 20px;
-    }
-    .lf-page-title {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 700;
-      color: #0f172a;
-    }
+    .lf-page-header { display: flex; align-items: center; gap: 8px; margin-bottom: 20px; }
+    .lf-page-title  { margin: 0; font-size: 20px; font-weight: 700; color: var(--lf-text-hi); }
 
     /* ── Form skeleton ──────────────────────────── */
     .lf { display: flex; flex-direction: column; }
-
     .lf-section { padding: 14px 0; }
-
-    .lf-sep {
-      height: 1px;
-      background: #f1f5f9;
-    }
+    .lf-sep { height: 1px; background: var(--lf-border); }
 
     /* ── Section label ──────────────────────────── */
     .lf-section-label {
       margin: 0 0 10px;
-      font-size: 10.5px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      color: #94a3b8;
+      font-size: 10.5px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: var(--lf-text-dim);
     }
 
     /* ── CSS grids ──────────────────────────────── */
-    .lf-grid          { display: grid; gap: 8px; }
-    .lf-grid.g1       { grid-template-columns: 1fr; }
-    .lf-grid.g2       { grid-template-columns: repeat(2, 1fr); }
-    .lf-grid.g3       { grid-template-columns: repeat(3, 1fr); }
-    .lf-mt            { margin-top: 8px; }
-
-    /* All fields fill their grid cell */
+    .lf-grid    { display: grid; gap: 8px; }
+    .lf-grid.g1 { grid-template-columns: 1fr; }
+    .lf-grid.g2 { grid-template-columns: repeat(2, 1fr); }
+    .lf-grid.g3 { grid-template-columns: repeat(3, 1fr); }
+    .lf-mt      { margin-top: 8px; }
     .lf mat-form-field { width: 100%; }
 
     /* ── Action bar ─────────────────────────────── */
     .lf-actions {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 8px;
-      padding-top: 12px;
-      border-top: 1px solid #f1f5f9;
-      margin-top: 4px;
+      display: flex; justify-content: flex-end; align-items: center;
+      gap: 8px; padding-top: 12px;
+      border-top: 1px solid var(--lf-border); margin-top: 4px;
     }
     .btn-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; }
   `],
