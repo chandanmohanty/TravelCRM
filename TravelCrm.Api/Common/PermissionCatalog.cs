@@ -111,15 +111,15 @@ public static class PermissionCatalog
             "Create / update / delete the tenant's task type catalog."));
 
         // CRM — Deals (pipeline kanban)
-        items.Add(New("crm", "deals", "view",   "View deals",       710,
+        items.Add(New("crm", "deals", "view", "View Deals", 710,
             "List, view, and see the kanban of deals."));
-        items.Add(New("crm", "deals", "manage", "Manage deals",     711,
+        items.Add(New("crm", "deals", "manage", "Manage Deals", 711,
             "Create, edit, move stages, reassign, and add notes."));
-        items.Add(New("crm", "deals", "delete", "Delete deals",     712,
+        items.Add(New("crm", "deals", "delete", "Delete Deals", 712,
             "Delete open deals (closed deals are immutable)."));
 
         // CRM — Pipelines
-        items.Add(New("crm", "pipelines", "manage", "Manage pipelines", 720,
+        items.Add(New("crm", "pipelines", "manage", "Manage Pipelines", 721,
             "Create, edit, reorder and delete pipelines and stages."));
 
         // Inventory — Suppliers / Resources / Calendar / Holds (foundation)
