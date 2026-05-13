@@ -19,6 +19,18 @@ public sealed class ApplicationDbContext(
     : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>(options)
 {
     private readonly ProtectedStringConverter _protectedString = new(dataProtectionProvider);
+
+    // Shared converter for pipe-joined List<string> columns (Lead.Tags, Deal.Tags, etc.).
+    // '|' separator chosen because it's URL-safe and not a typical tag character.
+    private static readonly Microsoft.EntityFrameworkCore.Storage.ValueConversion.ValueConverter<List<string>, string> _pipeListConverter =
+        new(v => string.Join('|', v),
+            v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList());
+
+    private static readonly Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>> _pipeListComparer =
+        new((a, b) => a!.SequenceEqual(b!),
+            v => v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode())),
+            v => v.ToList());
+
     public DbSet<Tenant> Tenants => Set<Tenant>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
@@ -385,13 +397,7 @@ public sealed class ApplicationDbContext(
             b.Property(l => l.Score).HasDefaultValue(0);
             b.Property(l => l.AssignedTo).HasMaxLength(200).IsRequired(false);
             b.Property(l => l.Tags)
-                .HasConversion(
-                    v => string.Join('|', v),
-                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                    new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
-                        (a, b2) => a!.SequenceEqual(b2!),
-                        v => v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode())),
-                        v => v.ToList()))
+                .HasConversion(_pipeListConverter, _pipeListComparer)
                 .HasMaxLength(1000);
             b.Property(l => l.Notes).HasMaxLength(4000).IsRequired(false);
             b.Property(l => l.EstimatedValue).HasColumnType("numeric(18,2)");
@@ -651,15 +657,8 @@ public sealed class ApplicationDbContext(
             b.Property(d => d.Status).HasConversion<int>();
             b.Property(d => d.RowVersion).IsRowVersion();
 
-            // Tags persistence mirrors Lead.Tags ('|'-joined)
             b.Property(d => d.Tags)
-                .HasConversion(
-                    v => string.Join('|', v),
-                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
-                    new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
-                        (a, b2) => a!.SequenceEqual(b2!),
-                        v => v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode())),
-                        v => v.ToList()))
+                .HasConversion(_pipeListConverter, _pipeListComparer)
                 .HasMaxLength(1000);
 
             b.HasOne<Pipeline>().WithMany().HasForeignKey(d => d.PipelineId)
