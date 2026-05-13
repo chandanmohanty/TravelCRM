@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Domain.Entities.Inventory;
+using TravelCrm.Api.Domain.Entities.Crm;
 using TravelCrm.Api.Domain.Entities.Subscriptions;
 using TravelCrm.Api.Infrastructure.Identity;
 using TravelCrm.Api.Infrastructure.Multitenancy;
@@ -56,6 +57,12 @@ public sealed class ApplicationDbContext(
     public DbSet<Plan> Plans => Set<Plan>();
     public DbSet<PlanFeature> PlanFeatures => Set<PlanFeature>();
     public DbSet<TenantSubscription> TenantSubscriptions => Set<TenantSubscription>();
+
+    // ── CRM Pipeline (Phase 1) ────────────────────────────────────────────────
+    public DbSet<Pipeline> Pipelines => Set<Pipeline>();
+    public DbSet<PipelineStage> PipelineStages => Set<PipelineStage>();
+    public DbSet<Deal> Deals => Set<Deal>();
+    public DbSet<DealActivity> DealActivities => Set<DealActivity>();
 
     // ── Inventory ─────────────────────────────────────────────────────────────
     public DbSet<Supplier> Suppliers => Set<Supplier>();
@@ -602,6 +609,83 @@ public sealed class ApplicationDbContext(
                 .WithMany()
                 .HasForeignKey(s => s.PlanId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── CRM Pipeline (Phase 1) ────────────────────────────────────────────
+
+        builder.Entity<Pipeline>(b =>
+        {
+            b.HasKey(p => p.Id);
+            b.Property(p => p.Name).HasMaxLength(100).IsRequired();
+            b.Property(p => p.Description).HasMaxLength(500);
+            b.HasIndex(p => new { p.TenantId, p.Name }).IsUnique();
+            b.HasIndex(p => new { p.TenantId, p.SortOrder });
+            b.HasMany(p => p.Stages)
+                .WithOne()
+                .HasForeignKey(s => s.PipelineId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<PipelineStage>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Name).HasMaxLength(100).IsRequired();
+            b.Property(s => s.Kind).HasConversion<int>();
+            b.Property(s => s.ColorHex).HasMaxLength(7);
+            b.HasIndex(s => new { s.PipelineId, s.Name }).IsUnique();
+            b.HasIndex(s => new { s.TenantId, s.PipelineId, s.SortOrder });
+        });
+
+        builder.Entity<Deal>(b =>
+        {
+            b.HasKey(d => d.Id);
+            b.Property(d => d.Title).HasMaxLength(200).IsRequired();
+            b.Property(d => d.ContactName).HasMaxLength(200).IsRequired();
+            b.Property(d => d.ContactEmail).HasMaxLength(256);
+            b.Property(d => d.ContactPhone).HasMaxLength(50);
+            b.Property(d => d.CompanyName).HasMaxLength(200);
+            b.Property(d => d.Currency).HasMaxLength(5).IsRequired();
+            b.Property(d => d.Value).HasColumnType("numeric(18,2)");
+            b.Property(d => d.Notes).HasMaxLength(4000);
+            b.Property(d => d.CustomFields).HasColumnType("jsonb");
+            b.Property(d => d.Status).HasConversion<int>();
+            b.Property(d => d.RowVersion).IsRowVersion();
+
+            // Tags persistence mirrors Lead.Tags ('|'-joined)
+            b.Property(d => d.Tags)
+                .HasConversion(
+                    v => string.Join('|', v),
+                    v => v.Split('|', StringSplitOptions.RemoveEmptyEntries).ToList(),
+                    new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
+                        (a, b2) => a!.SequenceEqual(b2!),
+                        v => v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode())),
+                        v => v.ToList()))
+                .HasMaxLength(1000);
+
+            b.HasOne<Pipeline>().WithMany().HasForeignKey(d => d.PipelineId)
+                .OnDelete(DeleteBehavior.Restrict);
+            b.HasOne<PipelineStage>().WithMany().HasForeignKey(d => d.StageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            b.HasIndex(d => new { d.TenantId, d.OwnerUserId });
+            b.HasIndex(d => new { d.TenantId, d.StageId, d.CreatedAt });
+            b.HasIndex(d => new { d.TenantId, d.Status });
+            b.HasIndex(d => new { d.TenantId, d.LeadId })
+                .HasFilter("lead_id IS NOT NULL");
+            b.HasIndex(d => new { d.TenantId, d.IsDeleted });
+        });
+
+        builder.Entity<DealActivity>(b =>
+        {
+            b.HasKey(a => a.Id);
+            b.Property(a => a.Kind).HasConversion<int>();
+            b.Property(a => a.ActorName).HasMaxLength(200);
+            b.Property(a => a.FromValue).HasMaxLength(500);
+            b.Property(a => a.ToValue).HasMaxLength(500);
+            b.Property(a => a.Note).HasMaxLength(2000);
+            b.HasOne<Deal>().WithMany().HasForeignKey(a => a.DealId)
+                .OnDelete(DeleteBehavior.Cascade);
+            b.HasIndex(a => new { a.TenantId, a.DealId, a.OccurredAt });
         });
     }
 
