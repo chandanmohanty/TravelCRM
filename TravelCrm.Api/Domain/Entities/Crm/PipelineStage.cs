@@ -23,4 +23,8 @@ public sealed class PipelineStage : IAuditableEntity
     public PipelineStageKind Kind { get; set; } = PipelineStageKind.Open;
     public string ColorHex { get; set; } = "#94a3b8";
     public bool IsActive { get; set; } = true;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public Guid? UpdatedBy { get; set; }
 }

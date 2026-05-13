@@ -15,6 +15,8 @@ public sealed class Pipeline : IAuditableEntity
     public int SortOrder { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
+    public Guid? CreatedBy { get; set; }
+    public Guid? UpdatedBy { get; set; }
 
     public List<PipelineStage> Stages { get; set; } = new();
 }
