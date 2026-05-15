@@ -49,6 +49,8 @@ public sealed class UpdatePipelineHandler(
             x => x.TenantId == tid && x.Id != cmd.Id && x.Name == cmd.Name, ct);
         if (dup) return Result.Failure<Guid>("Another pipeline already uses this name");
 
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         // Toggling default — unset other default
         if (cmd.IsDefault && !p.IsDefault)
         {
@@ -64,6 +66,7 @@ public sealed class UpdatePipelineHandler(
         p.UpdatedAt   = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return Result.Success(p.Id);
     }
 }

@@ -131,6 +131,7 @@ public sealed class UpdateStageHandler(
         stage.Kind               = Enum.Parse<PipelineStageKind>(cmd.Kind);
         stage.ColorHex           = cmd.ColorHex;
         stage.IsActive           = cmd.IsActive;
+        stage.UpdatedAt          = DateTime.UtcNow;
 
         await db.SaveChangesAsync(ct);
         return Result.Success(stage.Id);
@@ -208,11 +209,14 @@ public sealed class ReorderStagesHandler(
             stages.Any(s => !cmd.StageIds.Contains(s.Id)))
             return Result.Failure<bool>("Stage ID list doesn't match the pipeline's stages");
 
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
         var lookup = stages.ToDictionary(s => s.Id);
         for (int i = 0; i < cmd.StageIds.Count; i++)
             lookup[cmd.StageIds[i]].SortOrder = (i + 1) * 10;
 
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
         return Result.Success(true);
     }
 }

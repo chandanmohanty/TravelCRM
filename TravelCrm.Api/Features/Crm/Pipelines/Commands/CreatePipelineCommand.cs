@@ -54,14 +54,6 @@ public sealed class CreatePipelineHandler(
             p => p.TenantId == tid && p.Name == cmd.Name, ct);
         if (dup) return Result.Failure<PipelineDto>("A pipeline with this name already exists");
 
-        // If this is marked default, unset any existing default
-        if (cmd.IsDefault)
-        {
-            await db.Pipelines
-                .Where(p => p.TenantId == tid && p.IsDefault)
-                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDefault, false), ct);
-        }
-
         var nextSort = (await db.Pipelines.Where(p => p.TenantId == tid)
             .MaxAsync(p => (int?)p.SortOrder, ct) ?? 0) + 10;
 
@@ -102,8 +94,19 @@ public sealed class CreatePipelineHandler(
             IsActive           = true,
         }).ToList();
 
+        await using var tx = await db.Database.BeginTransactionAsync(ct);
+
+        // If this is marked default, unset any existing default
+        if (cmd.IsDefault)
+        {
+            await db.Pipelines
+                .Where(p => p.TenantId == tid && p.IsDefault)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.IsDefault, false), ct);
+        }
+
         db.Pipelines.Add(pipeline);
         await db.SaveChangesAsync(ct);
+        await tx.CommitAsync(ct);
 
         return Result.Success(new PipelineDto(
             pipeline.Id, pipeline.Name, pipeline.Description, pipeline.IsDefault, pipeline.IsActive, pipeline.SortOrder,
