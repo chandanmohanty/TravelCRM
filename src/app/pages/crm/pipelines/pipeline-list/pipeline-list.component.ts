@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTableModule } from '@angular/material/table';
@@ -18,7 +17,7 @@ import { PipelineDto } from 'src/app/core/models/crm.models';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, RouterLink,
-    MatButtonModule, MatCardModule, MatDialogModule,
+    MatButtonModule, MatCardModule,
     MatProgressSpinnerModule, MatSnackBarModule, MatTableModule, MatTooltipModule,
     TablerIconsModule,
   ],
@@ -50,7 +49,7 @@ import { PipelineDto } from 'src/app/core/models/crm.models';
               </ng-container>
               <ng-container matColumnDef="stages">
                 <th mat-header-cell *matHeaderCellDef>Stages</th>
-                <td mat-cell *matCellDef="let p">{{ p.stages.length }}</td>
+                <td mat-cell *matCellDef="let p">{{ p.stages?.length ?? 0 }}</td>
               </ng-container>
               <ng-container matColumnDef="deals">
                 <th mat-header-cell *matHeaderCellDef>Deals</th>
@@ -106,6 +105,9 @@ import { PipelineDto } from 'src/app/core/models/crm.models';
       text-transform: uppercase; letter-spacing: .5px;
       color: var(--pl-text-muted); background: #fafafa;
     }
+    :host-context(.dark-theme) .pl-table .mat-mdc-header-cell { background: #1f2a3d; }
+    :host-context(.dark-theme) .pl-pill-default  { background: rgba(29,78,216,.2); color: #93c5fd; }
+    :host-context(.dark-theme) .pl-pill-inactive { background: rgba(255,255,255,.06); color: #94a3b8; }
     .pl-table .mat-mdc-cell { padding: 12px 16px; }
     .pl-row:hover .mat-mdc-cell { background: var(--pl-row-hover); }
 
@@ -127,7 +129,6 @@ import { PipelineDto } from 'src/app/core/models/crm.models';
 })
 export class PipelineListComponent implements OnInit {
   private readonly api    = inject(PipelinesService);
-  private readonly dialog = inject(MatDialog);
   private readonly router = inject(Router);
   private readonly snack  = inject(MatSnackBar);
 

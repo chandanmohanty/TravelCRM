@@ -57,10 +57,10 @@ import { PipelineDto, PipelineStageDto, PipelineStageKind } from 'src/app/core/m
             <div cdkDropList (cdkDropListDropped)="onDrop($event)" class="pe-stages">
               @for (s of stages(); track s.id) {
                 <div cdkDrag class="pe-stage">
-                  <i-tabler name="grip-vertical" class="pe-drag" cdkDragHandle></i-tabler>
+                  <i-tabler name="grip-vertical" class="pe-drag" cdkDragHandle aria-label="Drag to reorder stage"></i-tabler>
                   <input class="pe-stage-name" [(ngModel)]="s.name" maxlength="100"
                          [ngModelOptions]="{ standalone: true }">
-                  <input type="color" [(ngModel)]="s.colorHex" class="pe-color"
+                  <input type="color" [(ngModel)]="s.colorHex" class="pe-color" aria-label="Stage color"
                          [ngModelOptions]="{ standalone: true }">
                   <input type="number" class="pe-prob" min="0" max="100"
                          [(ngModel)]="s.defaultProbability"
