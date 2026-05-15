@@ -20,7 +20,8 @@ import {
   DealDto, DealActivityDto, PipelineDto, PipelineStageDto,
 } from '../../../../core/models/crm.models';
 import { UserDto } from '../../../../core/models/identity.model';
-import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
+import { SidePanelRef, SIDE_PANEL_DATA, SidePanelService } from '../../../../shared/side-panel';
+import { DealFormComponent } from '../deal-form/deal-form.component';
 
 @Component({
   selector: 'app-deal-detail',
@@ -54,9 +55,14 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
               {{ d.pipelineName }} · {{ d.stageName }}
             </span>
           </div>
-          <span class="dd-status-badge" [class]="'status-' + d.status.toLowerCase()">
-            {{ d.status }}
-          </span>
+          <div class="dd-header-actions">
+            <button mat-stroked-button class="dd-edit-btn" (click)="openEdit(d)">
+              <mat-icon class="btn-icon">edit</mat-icon> Edit
+            </button>
+            <span class="dd-status-badge" [class]="'status-' + d.status.toLowerCase()">
+              {{ d.status }}
+            </span>
+          </div>
         </div>
 
         <!-- ── Stage quick-change ────────────────── -->
@@ -285,6 +291,9 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
       background: var(--stage-color, #94a3b8);
     }
 
+    .dd-header-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .dd-edit-btn { height: 32px; font-size: 12px; font-weight: 600; }
+
     /* Status badge */
     .dd-status-badge {
       display: inline-block; font-size: 11px; font-weight: 700;
@@ -375,6 +384,7 @@ export class DealDetailComponent implements OnInit {
   private readonly dealsApi     = inject(DealsService);
   private readonly pipelinesApi = inject(PipelinesService);
   private readonly identityApi  = inject(IdentityApiService);
+  private readonly sidePanel    = inject(SidePanelService);
   private readonly snack        = inject(MatSnackBar);
   private readonly route        = inject(ActivatedRoute);
   private readonly router       = inject(Router);
@@ -428,7 +438,7 @@ export class DealDetailComponent implements OnInit {
     this.dealsApi.move(deal.id, { rowVersion: deal.rowVersion, stageId: newStageId }).subscribe({
       next: updated => {
         this.deal.set(updated);
-        this.activity.set([...(updated.recentActivity ?? [])].reverse());
+        this.activity.set(updated.recentActivity ?? []);
         this.snack.open('Stage updated.', 'Close', { duration: 2000 });
       },
       error: err => this.handleError(err, deal.id),
@@ -443,7 +453,7 @@ export class DealDetailComponent implements OnInit {
       next: updated => {
         this.reassigning.set(false);
         this.deal.set(updated);
-        this.activity.set([...(updated.recentActivity ?? [])].reverse());
+        this.activity.set(updated.recentActivity ?? []);
         this.snack.open('Owner updated.', 'Close', { duration: 2000 });
       },
       error: err => {
@@ -492,6 +502,14 @@ export class DealDetailComponent implements OnInit {
         this.snack.open(msg, 'Close', { duration: 3500 });
       },
     });
+  }
+
+  openEdit(deal: DealDto): void {
+    const ref = this.sidePanel.open<DealFormComponent, { dealId: string }, 'saved' | 'cancelled'>(
+      DealFormComponent,
+      { title: 'Edit Deal', subtitle: deal.title, width: '560px', data: { dealId: deal.id } },
+    );
+    ref.afterClosed().subscribe(r => { if (r === 'saved') this.loadDeal(deal.id); });
   }
 
   actorInitials(name: string | null): string {
@@ -543,8 +561,8 @@ export class DealDetailComponent implements OnInit {
     this.dealsApi.get(dealId).subscribe({
       next: deal => {
         this.deal.set(deal);
-        // Activity is reverse-chrono (newest first)
-        this.activity.set([...(deal.recentActivity ?? [])].reverse());
+        // Activity arrives newest-first from the API (OrderByDescending(a => a.OccurredAt))
+        this.activity.set(deal.recentActivity ?? []);
         this.reassignCtrl.setValue(deal.ownerUserId);
         this.loading.set(false);
         // Populate stages for the move picker

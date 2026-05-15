@@ -1,7 +1,8 @@
 // src/app/pages/crm/deals/deal-form/deal-form.component.ts
 import {
-  Component, ChangeDetectionStrategy, inject, OnInit, signal, computed, effect,
+  Component, ChangeDetectionStrategy, inject, OnInit, signal, computed, effect, DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -100,6 +101,9 @@ const CURRENCY_CODES = ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'INR', 
               <input matInput formControlName="companyName" />
             </mat-form-field>
           </div>
+          @if (!isNew()) {
+            <p class="lf-snapshot-hint">Contact details are a snapshot. Use the deal's Reassign / stage actions to change owner or stage.</p>
+          }
         </section>
 
         <div class="lf-sep"></div>
@@ -246,6 +250,11 @@ const CURRENCY_CODES = ['USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'INR', 
                     color: #6366f1; min-width: auto; }
     mat-slider { width: 100%; }
 
+    /* ── Snapshot hint (edit mode only) ────────── */
+    .lf-snapshot-hint {
+      margin: 6px 0 0; font-size: 11.5px; color: var(--lf-text-dim); font-style: italic;
+    }
+
     /* ── Action bar ─────────────────────────────── */
     .lf-actions {
       display: flex; justify-content: flex-end; align-items: center;
@@ -264,6 +273,7 @@ export class DealFormComponent implements OnInit {
   private readonly snack        = inject(MatSnackBar);
   private readonly route        = inject(ActivatedRoute);
   private readonly router       = inject(Router);
+  private readonly destroyRef   = inject(DestroyRef);
   private readonly panelRef     = inject<SidePanelRef<'saved' | 'cancelled'> | null>(
     SidePanelRef, { optional: true });
   private readonly panelData    = inject<{ dealId?: string; leadId?: string } | null>(
@@ -338,9 +348,9 @@ export class DealFormComponent implements OnInit {
       });
     }
 
-    // Wire dirty tracking to panel
+    // Wire dirty tracking to panel (takeUntilDestroyed prevents subscription leak)
     if (this.panelRef) {
-      this.form.valueChanges.subscribe(() => {
+      this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.panelRef!.setDirty(this.form.dirty);
       });
     }
@@ -451,6 +461,17 @@ export class DealFormComponent implements OnInit {
       tagsRaw:           deal.tags.join(', '),
       notes:             deal.notes ?? '',
     });
+
+    // In edit mode, disable fields that dealsApi.update does not accept.
+    // Contact details are an immutable snapshot; pipeline/stage are changed
+    // via the detail panel's stage-move; owner is changed via Reassign.
+    this.form.controls.contactName.disable();
+    this.form.controls.contactEmail.disable();
+    this.form.controls.contactPhone.disable();
+    this.form.controls.companyName.disable();
+    this.form.controls.pipelineId.disable();
+    this.form.controls.stageId.disable();
+    this.form.controls.ownerUserId.disable();
 
     const currentStage = this.filteredStages().find(s => s.id === deal.stageId);
     if (currentStage) this.defaultProbability.set(currentStage.defaultProbability);
