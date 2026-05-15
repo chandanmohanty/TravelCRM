@@ -1,7 +1,8 @@
 import {
   Component, ChangeDetectionStrategy, inject, OnInit, signal,
-  computed, ViewChild, AfterViewInit,
+  computed, ViewChild, AfterViewInit, DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -406,14 +407,12 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     .status-contacted   { background: #fef3c7; color: #b45309; }
     .status-qualified   { background: #dcfce7; color: #15803d; }
     .status-unqualified { background: #fee2e2; color: #b91c1c; }
-    .status-converted   { background: #f3e8ff; color: #7e22ce; }
 
     /* ── Status badge — dark (tinted glass) ─────── */
     :host-context(.dark-theme) .status-new         { background: rgba(59, 130, 246, .18); color: #93c5fd; }
     :host-context(.dark-theme) .status-contacted   { background: rgba(245, 158, 11, .18); color: #fcd34d; }
     :host-context(.dark-theme) .status-qualified   { background: rgba(34, 197, 94,  .18); color: #86efac; }
     :host-context(.dark-theme) .status-unqualified { background: rgba(239, 68,  68,  .18); color: #fca5a5; }
-    :host-context(.dark-theme) .status-converted   { background: rgba(168, 85, 247, .18); color: #d8b4fe; }
 
     /* ── Score cell ─────────────────────────────── */
     .ll-score    { display: flex; flex-direction: column; gap: 3px; min-width: 72px; }
@@ -455,9 +454,10 @@ export class LeadListComponent implements OnInit, AfterViewInit {
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort)      sort!: MatSort;
 
-  private readonly api       = inject(LeadsService);
-  private readonly snack     = inject(MatSnackBar);
-  private readonly sidePanel = inject(SidePanelService);
+  private readonly api        = inject(LeadsService);
+  private readonly snack      = inject(MatSnackBar);
+  private readonly sidePanel  = inject(SidePanelService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly loading        = signal(true);
   private readonly leads$ = signal<LeadDto[]>([]);
@@ -489,7 +489,7 @@ export class LeadListComponent implements OnInit, AfterViewInit {
         data:     { id: lead?.id },
       },
     );
-    ref.afterClosed().subscribe((result) => {
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result === 'saved') this.load();
     });
   }
@@ -504,7 +504,7 @@ export class LeadListComponent implements OnInit, AfterViewInit {
         data:     { leadId: lead.id },
       },
     );
-    ref.afterClosed().subscribe((result) => {
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result === 'saved') this.load();
     });
   }
@@ -526,7 +526,7 @@ export class LeadListComponent implements OnInit, AfterViewInit {
     const filters: LeadListFilters = {};
     if (this.hasDealsFilter === 'true')  filters.hasDeals = true;
     if (this.hasDealsFilter === 'false') filters.hasDeals = false;
-    this.api.list(filters).subscribe({
+    this.api.list(filters).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: rows => {
         this.leads$.set(rows);
         this.dataSource.data = rows;
@@ -554,7 +554,7 @@ export class LeadListComponent implements OnInit, AfterViewInit {
 
   deleteLead(row: LeadDto): void {
     if (!confirm(`Delete "${row.firstName} ${row.lastName}"?`)) return;
-    this.api.delete(row.id).subscribe({
+    this.api.delete(row.id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.snack.open('Lead deleted.', 'Close', { duration: 2500 });
         const next = this.dataSource.data.filter(l => l.id !== row.id);
@@ -569,7 +569,6 @@ export class LeadListComponent implements OnInit, AfterViewInit {
     return {
       'status-new': s==='New', 'status-contacted': s==='Contacted',
       'status-qualified': s==='Qualified', 'status-unqualified': s==='Unqualified',
-      'status-converted': s==='Converted',
     };
   }
   getScoreClass(n: number)    { return n>=75 ? 'score-high' : n>=50 ? 'score-mid' : 'score-low'; }
