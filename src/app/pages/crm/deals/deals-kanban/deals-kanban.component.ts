@@ -1,11 +1,12 @@
 import {
-  ChangeDetectionStrategy, Component, OnInit,
+  ChangeDetectionStrategy, Component, DestroyRef, OnInit,
   computed, inject, signal,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { CdkDragDrop, DragDropModule, transferArrayItem } from '@angular/cdk/drag-drop';
+import { Subject, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSelectModule } from '@angular/material/select';
@@ -25,7 +26,7 @@ import { DealDetailComponent } from '../deal-detail/deal-detail.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, FormsModule, DragDropModule,
-    MatButtonModule, MatDialogModule, MatFormFieldModule, MatProgressSpinnerModule,
+    MatButtonModule, MatFormFieldModule, MatProgressSpinnerModule,
     MatSelectModule, MatSnackBarModule, TablerIconsModule,
   ],
   template: `
@@ -64,7 +65,7 @@ import { DealDetailComponent } from '../deal-detail/deal-detail.component';
                  (cdkDropListDropped)="onDrop($event)">
               <div class="kb-col-head">
                 <span class="kb-col-name">{{ col.stageName }}</span>
-                <span class="kb-col-count">{{ col.totalCount }}</span>
+                <span class="kb-col-count">{{ col.deals.length }}</span>
               </div>
               @for (d of col.deals; track d.id) {
                 <div class="kb-card" cdkDrag (click)="openDeal(d)">
@@ -140,9 +141,9 @@ import { DealDetailComponent } from '../deal-detail/deal-detail.component';
     .mr-1 { margin-right: 4px; }
 
     /* Dark-mode overrides */
-    :host-context(.dark) .kb-col { background: var(--col-bg, #1e293b); }
-    :host-context(.dark) .kb-card { background: var(--card-bg, #0f172a); border-color: #334155; }
-    :host-context(.dark) .kb-col-count { background: #1e293b; border-color: #334155; }
+    :host-context(.dark-theme) .kb-col { background: var(--col-bg, #1e293b); }
+    :host-context(.dark-theme) .kb-card { background: var(--card-bg, #0f172a); border-color: #334155; }
+    :host-context(.dark-theme) .kb-col-count { background: #1e293b; border-color: #334155; }
   `],
 })
 export class DealsKanbanComponent implements OnInit {
@@ -150,18 +151,22 @@ export class DealsKanbanComponent implements OnInit {
   private readonly pipelinesService = inject(PipelinesService);
   private readonly sidePanel        = inject(SidePanelService);
   private readonly snack            = inject(MatSnackBar);
+  private readonly destroyRef       = inject(DestroyRef);
 
   readonly loading      = signal(true);
   readonly kanban       = signal<KanbanDto | null>(null);
   readonly pipelinesList = signal<PipelineDto[]>([]);
   selectedPipelineId: string | null = null;
 
+  /** Subject that drives the switchMap-cancelled kanban reload pipeline. */
+  private readonly reloadKanban$ = new Subject<void>();
+
   readonly totalOpenCount = computed(() => {
     const k = this.kanban();
     if (!k) return 0;
     return k.columns
       .filter(c => c.stageKind === 'Open')
-      .reduce((s, c) => s + c.totalCount, 0);
+      .reduce((s, c) => s + c.deals.length, 0);
   });
 
   readonly pipelineValueLabel = computed(() => {
@@ -179,8 +184,31 @@ export class DealsKanbanComponent implements OnInit {
       .join(' · ') || '—';
   });
 
+  constructor() {
+    // Wire switchMap-cancelled kanban reload. selectedPipelineId is read
+    // inside switchMap so it always reflects the latest value at fire time.
+    this.reloadKanban$.pipe(
+      switchMap(() => {
+        if (!this.selectedPipelineId) {
+          this.loading.set(false);
+          return [];
+        }
+        return this.dealsService.getKanban(this.selectedPipelineId);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: k  => { this.kanban.set(k); this.loading.set(false); },
+      error: () => {
+        this.loading.set(false);
+        this.snack.open('Failed to load kanban.', 'Close', { duration: 3500 });
+      },
+    });
+  }
+
   ngOnInit(): void {
-    this.pipelinesService.list().subscribe(ps => {
+    this.pipelinesService.list().pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(ps => {
       this.pipelinesList.set(ps);
       const def = this.pipelinesService.defaultPipeline();
       this.selectedPipelineId = def?.id ?? ps[0]?.id ?? null;
@@ -189,15 +217,8 @@ export class DealsKanbanComponent implements OnInit {
   }
 
   loadKanban(): void {
-    if (!this.selectedPipelineId) { this.loading.set(false); return; }
     this.loading.set(true);
-    this.dealsService.getKanban(this.selectedPipelineId).subscribe({
-      next: k  => { this.kanban.set(k); this.loading.set(false); },
-      error: () => {
-        this.loading.set(false);
-        this.snack.open('Failed to load kanban.', 'Close', { duration: 3500 });
-      },
-    });
+    this.reloadKanban$.next();
   }
 
   onPipelineChange(pid: string): void {
@@ -284,7 +305,7 @@ export class DealsKanbanComponent implements OnInit {
       width: '560px',
       data: { pipelineId: this.selectedPipelineId },
     });
-    ref.afterClosed().subscribe(r => { if (r === 'saved') this.loadKanban(); });
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(r => { if (r === 'saved') this.loadKanban(); });
   }
 
   openDeal(d: DealDto): void {
@@ -294,6 +315,6 @@ export class DealsKanbanComponent implements OnInit {
       width: '560px',
       data: { dealId: d.id },
     });
-    ref.afterClosed().subscribe(() => this.loadKanban());
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.loadKanban());
   }
 }
