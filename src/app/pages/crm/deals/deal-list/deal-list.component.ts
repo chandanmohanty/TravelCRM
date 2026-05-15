@@ -1,16 +1,17 @@
 import {
   Component, ChangeDetectionStrategy, inject, OnInit, signal,
-  computed, ViewChild, AfterViewInit,
+  computed, DestroyRef,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { Subject, switchMap, debounceTime } from 'rxjs';
 import { SidePanelService } from '../../../../shared/side-panel';
 import { DealFormComponent } from '../deal-form/deal-form.component';
 import { DealDetailComponent } from '../deal-detail/deal-detail.component';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator, PageEvent } from '@angular/material/paginator';
-import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,7 +36,7 @@ import { UserDto } from '../../../../core/models/identity.model';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule, CurrencyPipe, DatePipe, RouterModule, FormsModule,
-    MatTableModule, MatPaginatorModule, MatSortModule,
+    MatTableModule, MatPaginatorModule,
     MatInputModule, MatFormFieldModule, MatSelectModule,
     MatButtonModule, MatIconModule, MatChipsModule,
     MatTooltipModule, MatMenuModule,
@@ -122,7 +123,9 @@ import { UserDto } from '../../../../core/models/identity.model';
               <mat-label>Pipeline</mat-label>
               <mat-select [(ngModel)]="pipelineFilter" (ngModelChange)="onPipelineChange()">
                 <mat-option value="">All</mat-option>
-                <mat-option *ngFor="let p of pipelines()" [value]="p.id">{{ p.name }}</mat-option>
+                @for (p of pipelines(); track p.id) {
+                  <mat-option [value]="p.id">{{ p.name }}</mat-option>
+                }
               </mat-select>
             </mat-form-field>
 
@@ -132,7 +135,9 @@ import { UserDto } from '../../../../core/models/identity.model';
               <mat-select [(ngModel)]="stageFilter" [disabled]="!pipelineFilter"
                           (ngModelChange)="reload()">
                 <mat-option value="">All</mat-option>
-                <mat-option *ngFor="let s of availableStages()" [value]="s.id">{{ s.name }}</mat-option>
+                @for (s of availableStages(); track s.id) {
+                  <mat-option [value]="s.id">{{ s.name }}</mat-option>
+                }
               </mat-select>
             </mat-form-field>
 
@@ -141,7 +146,9 @@ import { UserDto } from '../../../../core/models/identity.model';
               <mat-label>Owner</mat-label>
               <mat-select [(ngModel)]="ownerFilter" (ngModelChange)="reload()">
                 <mat-option value="">All</mat-option>
-                <mat-option *ngFor="let u of users()" [value]="u.id">{{ u.fullName }}</mat-option>
+                @for (u of users(); track u.id) {
+                  <mat-option [value]="u.id">{{ u.fullName }}</mat-option>
+                }
               </mat-select>
             </mat-form-field>
 
@@ -177,7 +184,7 @@ import { UserDto } from '../../../../core/models/identity.model';
                 <td mat-cell *matCellDef="let row">
                   <div class="dl-title-cell">
                     <span class="dl-stage-dot"
-                          [style.background]="'#' + row.stageColor"></span>
+                          [style.background]="row.stageColor"></span>
                     <span class="dl-name-primary">{{ row.title }}</span>
                   </div>
                 </td>
@@ -201,8 +208,8 @@ import { UserDto } from '../../../../core/models/identity.model';
                 <th mat-header-cell *matHeaderCellDef>Stage</th>
                 <td mat-cell *matCellDef="let row">
                   <span class="dl-stage-badge"
-                        [style.background]="'#' + row.stageColor + '33'"
-                        [style.color]="'#' + row.stageColor">
+                        [style.background]="row.stageColor + '33'"
+                        [style.color]="row.stageColor">
                     {{ row.stageName }}
                   </span>
                 </td>
@@ -429,6 +436,7 @@ export class DealListComponent implements OnInit {
   private readonly identityApi = inject(IdentityApiService);
   private readonly snack       = inject(MatSnackBar);
   private readonly sidePanel   = inject(SidePanelService);
+  private readonly destroyRef  = inject(DestroyRef);
 
   readonly loading  = signal(true);
   private readonly deals$ = signal<DealDto[]>([]);
@@ -500,28 +508,29 @@ export class DealListComponent implements OnInit {
   displayedColumns = ['title', 'contact', 'stage', 'value', 'owner', 'expectedClose', 'updatedAt'];
   dataSource = new MatTableDataSource<DealDto>([]);
 
-  ngOnInit(): void {
-    // Load reference data in parallel with the first deals page
-    this.pipelinesApi.list().subscribe(ps => this.pipelines.set(ps));
-    this.identityApi.listUsers({ pageSize: 200 }).subscribe(resp => this.users.set(resp.data));
-    this.reload();
-  }
+  /** Subject that drives the switchMap reload pipeline. */
+  private readonly reload$ = new Subject<void>();
 
-  /** Build filter params and fetch from DealsService. */
-  reload(): void {
-    this.loading.set(true);
-    const filters: Parameters<DealsService['list']>[0] = {
-      page:     this.page + 1, // backend is 1-based
-      pageSize: this.pageSize,
-    };
-    if (this.pipelineFilter) filters.pipelineId   = this.pipelineFilter;
-    if (this.stageFilter)    filters.stageId       = this.stageFilter;
-    if (this.ownerFilter)    filters.ownerUserId   = this.ownerFilter;
-    if (this.statusFilter)   filters.status        = this.statusFilter as DealStatus;
-    if (this.hasLeadFilter !== '') filters.hasLead  = this.hasLeadFilter === 'true';
-    if (this.searchText)     filters.search        = this.searchText.trim();
-
-    this.dealsApi.list(filters).subscribe({
+  constructor() {
+    // Wire the reload pipeline with debounce + switchMap for cancellation of in-flight requests.
+    // Filter values are read inside switchMap so they always reflect the latest state.
+    this.reload$.pipe(
+      debounceTime(250),
+      switchMap(() => {
+        const filters: Parameters<DealsService['list']>[0] = {
+          page:     this.page + 1, // backend is 1-based
+          pageSize: this.pageSize,
+        };
+        if (this.pipelineFilter) filters.pipelineId  = this.pipelineFilter;
+        if (this.stageFilter)    filters.stageId      = this.stageFilter;
+        if (this.ownerFilter)    filters.ownerUserId  = this.ownerFilter;
+        if (this.statusFilter)   filters.status       = this.statusFilter as DealStatus;
+        if (this.hasLeadFilter !== '') filters.hasLead = this.hasLeadFilter === 'true';
+        if (this.searchText)     filters.search       = this.searchText.trim();
+        return this.dealsApi.list(filters);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
       next: resp => {
         this.deals$.set(resp.items);
         this.total.set(resp.total);
@@ -533,6 +542,19 @@ export class DealListComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  ngOnInit(): void {
+    // Load reference data in parallel with the first deals page
+    this.pipelinesApi.list().subscribe(ps => this.pipelines.set(ps));
+    this.identityApi.listUsers({ pageSize: 200 }).subscribe(resp => this.users.set(resp.data));
+    this.reload();
+  }
+
+  /** Signal a reload — the switchMap pipeline handles debounce and cancellation. */
+  reload(): void {
+    this.loading.set(true);
+    this.reload$.next();
   }
 
   /** When the pipeline dropdown changes, reset stage and reload. */
