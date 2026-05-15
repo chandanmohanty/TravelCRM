@@ -109,26 +109,27 @@ src/app/pages/crm/pipeline/                               (stub replaced)
 
 ## ▶ EXECUTION PROGRESS
 
-> **Last updated:** 2026-05-14 · **HEAD:** `09a3907` · pushed to `origin/master`
+> **Last updated:** 2026-05-16 · **HEAD:** `02164c7` · pushed to `origin/master`
 >
-> **Tasks 1–5 COMPLETE** (subagent-driven, both review stages passed + fixes applied):
+> **ALL 28 TASKS COMPLETE — PHASE 1 DONE.**
 >
-> | Task | Commits | Notes |
-> |---|---|---|
-> | 1 Domain entities | `ec5e502`, `f84121a` | + audit-field fix on Pipeline/PipelineStage |
-> | 2 EF config + migration | `a76043c`, `ac0a483` | migration `20260512194802_AddDealsAndPipelines`; Tags converter extracted to shared `_pipeListConverter`/`_pipeListComparer` |
-> | 3 Permissions | `315298e`, `5bd37f6` | Admin=all4, Manager=view+manage, ReadOnly=view |
-> | 4 PipelineSeeder | `a946856`, `75ae3f1` | `LeadStatus.Converted = 5` (1-based enum); uses ILogger |
-> | 5 Pipelines DTOs + queries | `546fce2`, `09a3907` | + migration `20260515193647_DealPipelineIndex` ((TenantId,PipelineId,IsDeleted)) |
+> **PHASE 1 COMPLETE — no resume needed.**
 >
-> **RESUME AT TASK 6.** Working notes for the next session:
-> - Branch: `master`, no worktree. Pre-existing unstaged `src/assets/scss/_container.scss` is unrelated — never stage it.
-> - DB connection (user-secrets): `Host=localhost;Port=5432;Database=travelcrm;Username=postgres;Password=Cl0ud@2026$`. psql at `C:\Program Files\PostgreSQL\18\bin\psql.exe`.
-> - Always `Get-Process -Name "TravelCrm.Api" | Stop-Process -Force` before `dotnet build` (dev server locks the .exe).
-> - 5 pre-existing build warnings are EXPECTED & acceptable: 3× CS0618 in `ConvertLeadCommand.cs`/`DeleteLeadCommand.cs` (Task 17 removes/rewrites them), 2× CS9113 in `RefreshCommandHandler.cs`/`ForgotPasswordCommand.cs` (unrelated).
-> - `crm.deals.*` + `crm.pipelines.manage` permission slugs are seeded. `crm.deals.view` gates queries, `crm.deals.manage` gates writes, `crm.deals.delete` gates delete, `crm.pipelines.manage` gates pipeline/stage admin.
-> - `EFCore.NamingConventions` auto snake_cases all tables/columns — never add manual `[Table]`/`[Column]`.
-> - Codebase conventions confirmed by Task 5: `Result<T>` in `TravelCrm.Api.Common`; `ICurrentUser.HasPermission(string)`; `ITenantContext.IsResolved`/`.TenantId`; tenant scoping is explicit per-handler (no global filters).
+> ### Summary
+>
+> Tasks 1–27 were executed by subagents across multiple sessions. Task 28 (wrap) was the final step:
+> smoke test passed (steps 1–7 PASS; step 8 is a known pre-existing 403 on leads — separate follow-up,
+> not a Phase-1 Deals defect). One bug found and fixed during smoke test:
+> `fn_deal_row_version()` used `gen_random_bytes(16)` which requires the pgcrypto extension (not installed
+> by default). Fixed via migration `20260516000002_FixDealRowVersionTrigger` using `gen_random_uuid()`.
+>
+> | Tasks | Status |
+> |---|---|
+> | 1–5 Backend foundation (entities, migration, permissions, seeder, pipeline queries) | ✅ |
+> | 6–16 Backend commands + controllers (pipelines, stages, deals) | ✅ |
+> | 17 Lead housekeeping (Convert→Deal, hasDeals, dealCount, delete guard) | ✅ |
+> | 18–27 Frontend (models, services, kanban, list, detail, pipelines UI, routes) | ✅ |
+> | 28 Wrap (smoke test, docs regen, graphify, corrective migration, push) | ✅ |
 
 ---
 
@@ -139,29 +140,29 @@ src/app/pages/crm/pipeline/                               (stub replaced)
 3. ~~PermissionCatalog + RolePermissionSeeder updates~~ ✅
 4. ~~PipelineSeeder + Lead.Converted backfill, wired into SeedData~~ ✅
 5. ~~Pipelines DTOs + List/Get queries~~ ✅
-6. Pipelines commands (Create/Update/Delete)  ← **RESUME HERE**
-7. Stage commands (Add/Update/Delete/Reorder)
-8. PipelinesController
-9. Deal DTOs + DealActivityLogger
-10. Deals queries (List/Get/Kanban)
-11. CreateDealCommand
-12. UpdateDealCommand
-13. MoveDealStageCommand
-14. ReassignDealCommand + AddDealNoteCommand
-15. DeleteDealCommand
-16. DealsController
-17. Lead housekeeping (remove Convert, hasDeals, dealCount, delete guard)
-18. Frontend: crm.models.ts types
-19. Frontend: PipelinesService
-20. Frontend: DealsService
-21. Frontend: Pipelines list + edit components
-22. Frontend: Deal form (dual-mode)
-23. Frontend: Deal list with KPIs
-24. Frontend: Deal detail SidePanel
-25. Frontend: Deals kanban with CDK drag-drop
-26. Frontend: routes, sidebar nav, old `/crm/pipeline` redirect
-27. Frontend: Lead list + form updates
-28. Wrap — smoke test, docs regen, graphify update
+6. ~~Pipelines commands (Create/Update/Delete)~~ ✅
+7. ~~Stage commands (Add/Update/Delete/Reorder)~~ ✅
+8. ~~PipelinesController~~ ✅
+9. ~~Deal DTOs + DealActivityLogger~~ ✅
+10. ~~Deals queries (List/Get/Kanban)~~ ✅
+11. ~~CreateDealCommand~~ ✅
+12. ~~UpdateDealCommand~~ ✅
+13. ~~MoveDealStageCommand~~ ✅
+14. ~~ReassignDealCommand + AddDealNoteCommand~~ ✅
+15. ~~DeleteDealCommand~~ ✅
+16. ~~DealsController~~ ✅
+17. ~~Lead housekeeping (remove Convert, hasDeals, dealCount, delete guard)~~ ✅
+18. ~~Frontend: crm.models.ts types~~ ✅
+19. ~~Frontend: PipelinesService~~ ✅
+20. ~~Frontend: DealsService~~ ✅
+21. ~~Frontend: Pipelines list + edit components~~ ✅
+22. ~~Frontend: Deal form (dual-mode)~~ ✅
+23. ~~Frontend: Deal list with KPIs~~ ✅
+24. ~~Frontend: Deal detail SidePanel~~ ✅
+25. ~~Frontend: Deals kanban with CDK drag-drop~~ ✅
+26. ~~Frontend: routes, sidebar nav, old `/crm/pipeline` redirect~~ ✅
+27. ~~Frontend: Lead list + form updates~~ ✅
+28. ~~Wrap — smoke test, docs regen, graphify update~~ ✅
 
 Tasks 1–17 = backend (~16 SP). Tasks 18–28 = frontend (~13 SP). Total ~29 SP.
 
