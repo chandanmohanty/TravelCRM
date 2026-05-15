@@ -6,6 +6,7 @@ public enum LeadStatus
     Contacted   = 2,
     Qualified   = 3,
     Unqualified = 4,
+    [Obsolete("Retired in Phase 1. Use a Deal to express conversion. Existing rows are backfilled to Qualified.")]
     Converted   = 5,
 }
 

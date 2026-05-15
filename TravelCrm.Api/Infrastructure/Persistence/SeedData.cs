@@ -179,5 +179,8 @@ public static class SeedData
         // row. Idempotent. Run last so the tenants loop above has already
         // materialised any new tenants created in earlier seed steps.
         await PlanSeeder.SeedAsync(db);
+
+        // ── Default pipelines + Lead.Converted backfill (Phase 1) ─────────────
+        await PipelineSeeder.SeedAsync(db);
     }
 }
