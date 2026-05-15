@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Domain.Entities.Crm;
 
@@ -24,7 +25,7 @@ public static class PipelineSeeder
         new("Closed Lost",   60,   0, PipelineStageKind.Lost, "#dc2626"),
     };
 
-    public static async Task SeedAsync(ApplicationDbContext db, CancellationToken ct = default)
+    public static async Task SeedAsync(ApplicationDbContext db, ILogger logger, CancellationToken ct = default)
     {
         // 1. Default pipeline per tenant
         var tenantIds = await db.Tenants.Select(t => t.Id).ToListAsync(ct);
@@ -67,6 +68,6 @@ public static class PipelineSeeder
 #pragma warning restore CS0618
 
         if (converted > 0)
-            Console.WriteLine($"[PipelineSeeder] Demoted {converted} legacy Converted leads to Qualified.");
+            logger.LogInformation("[PipelineSeeder] Demoted {Count} legacy Converted leads to Qualified.", converted);
     }
 }

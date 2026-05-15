@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using TravelCrm.Api.Common;
 using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Infrastructure.Identity;
@@ -181,6 +182,8 @@ public static class SeedData
         await PlanSeeder.SeedAsync(db);
 
         // ── Default pipelines + Lead.Converted backfill (Phase 1) ─────────────
-        await PipelineSeeder.SeedAsync(db);
+        var pipelineSeederLogger = services.GetRequiredService<ILoggerFactory>()
+            .CreateLogger("PipelineSeeder");
+        await PipelineSeeder.SeedAsync(db, pipelineSeederLogger);
     }
 }
