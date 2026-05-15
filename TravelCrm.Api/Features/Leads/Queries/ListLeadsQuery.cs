@@ -9,7 +9,11 @@ using TravelCrm.Api.Infrastructure.Persistence;
 
 namespace TravelCrm.Api.Features.Leads.Queries;
 
-public sealed record ListLeadsQuery : IRequest<Result<IReadOnlyList<LeadDto>>>;
+public sealed record ListLeadsQuery(
+    int    PageSize = 20,
+    int    Page     = 1,
+    bool?  HasDeals = null
+) : IRequest<Result<IReadOnlyList<LeadDto>>>;
 
 public sealed class ListLeadsQueryHandler(
     ApplicationDbContext db,
@@ -18,21 +22,42 @@ public sealed class ListLeadsQueryHandler(
     : IRequestHandler<ListLeadsQuery, Result<IReadOnlyList<LeadDto>>>
 {
     public async Task<Result<IReadOnlyList<LeadDto>>> Handle(
-        ListLeadsQuery _, CancellationToken ct)
+        ListLeadsQuery q, CancellationToken ct)
     {
         if (!currentUser.HasPermission("crm.leads.view"))
             return Result.Failure<IReadOnlyList<LeadDto>>("You don't have permission to view leads.");
 
         if (!tenantContext.IsResolved)
             return Result.Failure<IReadOnlyList<LeadDto>>("Tenant context is not resolved.");
+
         var tenantId = tenantContext.TenantId!.Value;
-        var rows = await db.Leads
+
+        var query = db.Leads
             .AsNoTracking()
             .Where(l => l.TenantId == tenantId)
             .OrderByDescending(l => l.CreatedAt)
+            .AsQueryable();
+
+        // hasDeals filter
+        if (q.HasDeals == true)
+            query = query.Where(l => db.Deals.Any(d => d.LeadId == l.Id && !d.IsDeleted));
+        else if (q.HasDeals == false)
+            query = query.Where(l => !db.Deals.Any(d => d.LeadId == l.Id && !d.IsDeleted));
+
+        // Single query with correlated subquery count — avoids N+1
+        var rows = await query
+            .Select(l => new
+            {
+                Lead     = l,
+                DealCount = db.Deals.Count(d => d.LeadId == l.Id && !d.IsDeleted)
+            })
             .ToListAsync(ct);
 
-        return Result.Success<IReadOnlyList<LeadDto>>(rows.Select(LeadMapper.ToDto).ToList());
+        var items = rows
+            .Select(r => LeadMapper.ToDto(r.Lead) with { DealCount = r.DealCount })
+            .ToList();
+
+        return Result.Success<IReadOnlyList<LeadDto>>(items);
     }
 }
 

@@ -17,5 +17,6 @@ public sealed record LeadDto(
     string                Notes,
     decimal?              EstimatedValue,
     DateTime              CreatedAt,
-    DateTime?             UpdatedAt
+    DateTime?             UpdatedAt,
+    int                   DealCount = 0
 );

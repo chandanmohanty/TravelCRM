@@ -6,6 +6,7 @@ using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Features.Leads.Commands;
 using TravelCrm.Api.Features.Leads.Queries;
 
+
 namespace TravelCrm.Api.Features.Leads;
 
 [Authorize]
@@ -14,9 +15,13 @@ namespace TravelCrm.Api.Features.Leads;
 public sealed class LeadsController(IMediator mediator) : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken ct)
+    public async Task<IActionResult> List(
+        [FromQuery] int    pageSize = 20,
+        [FromQuery] int    page     = 1,
+        [FromQuery] bool?  hasDeals = null,
+        CancellationToken ct = default)
     {
-        var r = await mediator.Send(new ListLeadsQuery(), ct);
+        var r = await mediator.Send(new ListLeadsQuery(pageSize, page, hasDeals), ct);
         return r.IsSuccess ? Ok(r.Value) : Forbid();
     }
 
@@ -76,16 +81,6 @@ public sealed class LeadsController(IMediator mediator) : ControllerBase
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/convert")]
-    public async Task<IActionResult> Convert(Guid id, CancellationToken ct)
-    {
-        var r = await mediator.Send(new ConvertLeadCommand(id), ct);
-        if (!r.IsSuccess)
-            return r.Error!.Contains("not found", StringComparison.OrdinalIgnoreCase)
-                ? NotFound(new { error = r.Error })
-                : BadRequest(new { error = r.Error });
-        return Ok(r.Value);
-    }
 }
 
 public sealed record LeadUpsertRequest(
