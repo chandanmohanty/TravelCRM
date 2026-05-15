@@ -48,11 +48,11 @@ public sealed class ListDealsHandler(
         if (q.HasLead == false) query = query.Where(d => d.LeadId == null);
         if (!string.IsNullOrEmpty(q.Search))
         {
-            var s = q.Search.ToLower();
+            var pattern = $"%{q.Search}%";
             query = query.Where(d =>
-                d.Title.ToLower().Contains(s) ||
-                d.ContactName.ToLower().Contains(s) ||
-                (d.CompanyName ?? "").ToLower().Contains(s));
+                EF.Functions.ILike(d.Title, pattern)
+                || EF.Functions.ILike(d.ContactName, pattern)
+                || (d.CompanyName != null && EF.Functions.ILike(d.CompanyName, pattern)));
         }
 
         var total = await query.CountAsync(ct);

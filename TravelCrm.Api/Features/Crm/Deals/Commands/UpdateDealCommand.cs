@@ -54,7 +54,9 @@ public sealed class UpdateDealHandler(
         if (deal is null) return Result.Failure<DealDto>("Deal not found");
 
         // Concurrency check — client must send the RowVersion it last read
-        var clientRv = Convert.FromBase64String(cmd.RowVersion);
+        byte[] clientRv;
+        try { clientRv = Convert.FromBase64String(cmd.RowVersion); }
+        catch (FormatException) { return Result.Failure<DealDto>("invalid_row_version"); }
         if (!clientRv.SequenceEqual(deal.RowVersion))
             return Result.Failure<DealDto>("concurrency_conflict");
 

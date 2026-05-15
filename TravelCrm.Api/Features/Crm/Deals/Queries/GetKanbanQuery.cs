@@ -26,8 +26,9 @@ public sealed class GetKanbanHandler(
 
         // Pick pipeline: requested → tenant default → first active by sort
         var pipeline = q.PipelineId is Guid pid
-            ? await db.Pipelines.FirstOrDefaultAsync(p => p.Id == pid && p.TenantId == tid, ct)
+            ? await db.Pipelines.AsNoTracking().FirstOrDefaultAsync(p => p.Id == pid && p.TenantId == tid, ct)
             : await db.Pipelines
+                .AsNoTracking()
                 .Where(p => p.TenantId == tid && p.IsActive)
                 .OrderByDescending(p => p.IsDefault).ThenBy(p => p.SortOrder)
                 .FirstOrDefaultAsync(ct);
@@ -41,6 +42,7 @@ public sealed class GetKanbanHandler(
 
         // Pull all deals for those stages in one query
         var stageIds = stages.Select(s => s.Id).ToList();
+        // Phase 1: unbounded fetch — acceptable for typical pipeline sizes. Paginate/virtualize before scale (see spec §7 deferred items).
         var deals = await (from d in db.Deals
                            where d.TenantId == tid && !d.IsDeleted && stageIds.Contains(d.StageId)
                            orderby d.CreatedAt descending
