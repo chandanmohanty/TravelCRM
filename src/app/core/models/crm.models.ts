@@ -81,6 +81,10 @@ export interface Company {
 
 // ─── Opportunity / Deal ──────────────────────────────────────────────────────
 
+/**
+ * @deprecated Use `PipelineStageKind` from Phase 1 types below.
+ * Retained until Task 26 removes the old /crm/pipeline stub.
+ */
 export type OpportunityStage =
   | 'Prospect'
   | 'Qualification'
@@ -89,6 +93,10 @@ export type OpportunityStage =
   | 'Closed Won'
   | 'Closed Lost';
 
+/**
+ * @deprecated Use `DealDto` from Phase 1 types below.
+ * Retained until Task 26 removes the old /crm/pipeline stub.
+ */
 export interface Opportunity {
   id: number;
   name: string;
@@ -106,6 +114,95 @@ export interface Opportunity {
   tags: string[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+// ── Phase 1: Deals & Pipelines ───────────────────────────────────────────────
+
+export type PipelineStageKind = 'Open' | 'Won' | 'Lost';
+export type DealStatus        = 'Open' | 'Won' | 'Lost';
+
+export interface PipelineStageDto {
+  id: string;
+  pipelineId: string;
+  name: string;
+  sortOrder: number;
+  defaultProbability: number;
+  kind: PipelineStageKind;
+  colorHex: string;
+  isActive: boolean;
+  dealCount: number;
+}
+
+export interface PipelineDto {
+  id: string;
+  name: string;
+  description: string | null;
+  isDefault: boolean;
+  isActive: boolean;
+  sortOrder: number;
+  dealCount: number;
+  stages: PipelineStageDto[];
+}
+
+export interface DealActivityDto {
+  id: string;
+  occurredAt: string;
+  actorUserId: string | null;
+  actorName: string | null;
+  kind: 'Created' | 'StageChanged' | 'OwnerChanged' | 'ValueChanged'
+      | 'Closed' | 'Reopened' | 'Note';
+  fromValue: string | null;
+  toValue: string | null;
+  note: string | null;
+}
+
+export interface DealDto {
+  id: string;
+  title: string;
+  pipelineId: string;
+  pipelineName: string;
+  stageId: string;
+  stageName: string;
+  stageKind: PipelineStageKind;
+  stageColor: string;
+  leadId: string | null;
+  contactName: string;
+  contactEmail: string | null;
+  contactPhone: string | null;
+  companyName: string | null;
+  value: number | null;
+  currency: string;
+  probability: number;
+  expectedCloseDate: string | null;
+  actualCloseDate: string | null;
+  ownerUserId: string;
+  ownerName: string | null;
+  tags: string[];
+  notes: string | null;
+  status: DealStatus;
+  rowVersion: string;
+  createdAt: string;
+  updatedAt: string | null;
+  recentActivity: DealActivityDto[] | null;
+}
+
+export interface KanbanColumnDto {
+  stageId: string;
+  stageName: string;
+  stageKind: PipelineStageKind;
+  stageColor: string;
+  sortOrder: number;
+  probability: number;
+  deals: DealDto[];
+  totalCount: number;
+  totalValue: number | null;
+  totalValueByCurrency: Record<string, number>;
+}
+
+export interface KanbanDto {
+  pipelineId: string;
+  pipelineName: string;
+  columns: KanbanColumnDto[];
 }
 
 // ─── Quotation ───────────────────────────────────────────────────────────────
