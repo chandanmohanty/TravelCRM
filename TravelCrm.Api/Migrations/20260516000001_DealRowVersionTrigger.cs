@@ -15,13 +15,14 @@ namespace TravelCrm.Api.Migrations
         {
             // Create a trigger function that auto-generates row_version bytes on insert/update.
             // EF Core's IsRowVersion() on Npgsql bytea requires a DB-generated value.
-            // Uses gen_random_bytes(16) — built-in CSPRNG on PG18, always exactly 16 bytes,
-            // no pgcrypto extension needed.
+            // NOTE: gen_random_bytes(16) requires pgcrypto; use decode(replace(gen_random_uuid()::text,'-',''),'hex')
+            // which is built-in (gen_random_uuid is native since PG13) and produces exactly 16 bytes.
+            // Fixed in 20260516000002_FixDealRowVersionTrigger — this file kept for migration history accuracy.
             migrationBuilder.Sql(@"
 CREATE OR REPLACE FUNCTION fn_deal_row_version()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.row_version := gen_random_bytes(16);
+    NEW.row_version := decode(replace(gen_random_uuid()::text, '-', ''), 'hex');
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;

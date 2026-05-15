@@ -181,16 +181,18 @@ const tenantSettingsRows = [
 
 const crmRows = [
   { module: 'Leads', backend: 'Features/Leads + LeadsController', frontend: 'pages/crm/leads/ (list + form)', status: 'Full' },
-  { module: 'Tasks (CRM)', backend: 'Features/Tasks + TasksController', frontend: 'apps/task/ (list, form, detail, kanban)', status: 'Full' },
-  { module: 'Time Entries (per-task logging)', backend: 'Features/TimeEntries + TimeEntriesController', frontend: 'embedded in task detail page', status: 'Full' },
+  { module: 'Deals', backend: 'Features/Crm/Deals + DealsController (9 endpoints)', frontend: 'pages/crm/deals/ (list, kanban, detail)', status: 'Full' },
+  { module: 'Pipelines (configurable stages)', backend: 'Features/Crm/Pipelines + PipelinesController (9 endpoints)', frontend: 'pages/crm/pipelines/ (list + drag-drop edit)', status: 'Full' },
+  { module: 'Tasks (CRM)', backend: 'Features/Tasks + TasksController', frontend: 'apps/task/', status: 'Full' },
+  { module: 'Time Entries', backend: 'Features/TimeEntries + TimeEntriesController', frontend: 'embedded in task detail', status: 'Full' },
   { module: 'Reminders', backend: 'Features/Reminders + RemindersController', frontend: 'pages/reminders/', status: 'Full' },
+  // ── Remaining stubs (Phase 2 onwards) ──
   { module: 'Companies', backend: '—', frontend: 'pages/crm/companies/', status: 'Frontend-only' },
   { module: 'Customers', backend: '—', frontend: 'pages/crm/customers/', status: 'Frontend-only' },
-  { module: 'Bookings', backend: '—', frontend: 'pages/crm/bookings/', status: 'Frontend-only' },
-  { module: 'Packages', backend: '—', frontend: 'pages/crm/packages/', status: 'Frontend-only' },
+  { module: 'Bookings',  backend: '—', frontend: 'pages/crm/bookings/',  status: 'Frontend-only' },
+  { module: 'Packages',  backend: '—', frontend: 'pages/crm/packages/',  status: 'Frontend-only' },
   { module: 'Destinations', backend: '—', frontend: 'pages/crm/destinations/', status: 'Frontend-only' },
-  { module: 'Pipeline (sales)', backend: '—', frontend: 'pages/crm/pipeline/', status: 'Frontend-only' },
-  { module: 'Reports', backend: '—', frontend: 'pages/crm/reports/', status: 'Frontend-only' },
+  { module: 'Reports',   backend: '—', frontend: 'pages/crm/reports/',   status: 'Frontend-only' },
 ];
 
 const inventoryRows = [
@@ -225,9 +227,9 @@ const themeRows = [
 ];
 
 const summaryRows = [
-  ['~31', 'Real CRM modules (Full or Backend-only)'],
+  ['~33', 'Real CRM modules (Full or Backend-only)'],
   ['8', 'Inventory backend modules (2 with UI: Suppliers + Tenant Settings)'],
-  ['7', 'CRM frontend stubs awaiting backends (Companies, Customers, Bookings, Packages, Destinations, Pipeline, Reports)'],
+  ['6', 'CRM frontend stubs awaiting backends (Companies, Customers, Bookings, Packages, Destinations, Reports)'],
   ['Every module', 'Multi-tenant + permissioned + audited from day one'],
 ];
 
@@ -289,8 +291,8 @@ const children = [
 
   ...spacer(),
   sectionHeading('4. CRM (Sales & Operations)'),
-  sectionIntro('Customer-facing business modules. Four are full-stack; seven are frontend-only stubs ' +
-               'awaiting backend implementation.'),
+  sectionIntro('Customer-facing business modules. Six are full-stack (Leads, Deals, Pipelines, Tasks, Time Entries, Reminders); ' +
+               'six are frontend-only stubs awaiting Phase 2+ backend implementation.'),
   moduleTable(crmRows),
 
   ...spacer(),
