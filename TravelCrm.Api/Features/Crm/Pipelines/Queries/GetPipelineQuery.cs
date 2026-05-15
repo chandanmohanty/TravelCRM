@@ -24,15 +24,13 @@ public sealed class GetPipelineHandler(
 
         var tid = tenant.TenantId!.Value;
 
+        // Intentionally returns inactive pipelines too — single-ID GET for the admin editor.
         var p = await db.Pipelines
+            .AsNoTracking()
             .Where(x => x.Id == q.Id && x.TenantId == tid)
             .Include(x => x.Stages)
-            .AsNoTracking()
             .FirstOrDefaultAsync(ct);
         if (p is null) return Result.Failure<PipelineDto>("Pipeline not found");
-
-        var pipelineCount = await db.Deals.CountAsync(
-            d => d.TenantId == tid && d.PipelineId == p.Id && !d.IsDeleted, ct);
 
         var stageCounts = await db.Deals
             .Where(d => d.TenantId == tid && d.PipelineId == p.Id && !d.IsDeleted)
@@ -40,9 +38,13 @@ public sealed class GetPipelineHandler(
             .Select(g => new { StageId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.StageId, x => x.Count, ct);
 
+        // Derived from stage counts — avoids a separate DB round-trip.
+        var pipelineCount = stageCounts.Values.Sum();
+
         var dto = new PipelineDto(
             p.Id, p.Name, p.Description, p.IsDefault, p.IsActive, p.SortOrder,
             pipelineCount,
+            // Admin queries return all stages incl. inactive; the kanban query filters IsActive separately.
             p.Stages.OrderBy(s => s.SortOrder).Select(s => new PipelineStageDto(
                 s.Id, s.PipelineId, s.Name, s.SortOrder, s.DefaultProbability,
                 s.Kind.ToString(), s.ColorHex, s.IsActive,

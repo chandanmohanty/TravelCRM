@@ -26,10 +26,10 @@ public sealed class ListPipelinesHandler(
         var tid = tenant.TenantId!.Value;
 
         var pipelines = await db.Pipelines
+            .AsNoTracking()
             .Where(p => p.TenantId == tid && (q.IncludeInactive || p.IsActive))
             .OrderBy(p => p.SortOrder).ThenBy(p => p.Name)
             .Include(p => p.Stages)
-            .AsNoTracking()
             .ToListAsync(ct);
 
         // Deal-count per pipeline + per stage (one round-trip each)
@@ -48,6 +48,7 @@ public sealed class ListPipelinesHandler(
         var dtos = pipelines.Select(p => new PipelineDto(
             p.Id, p.Name, p.Description, p.IsDefault, p.IsActive, p.SortOrder,
             pipelineCounts.GetValueOrDefault(p.Id, 0),
+            // Admin queries return all stages incl. inactive; the kanban query filters IsActive separately.
             p.Stages.OrderBy(s => s.SortOrder).Select(s => new PipelineStageDto(
                 s.Id, s.PipelineId, s.Name, s.SortOrder, s.DefaultProbability,
                 s.Kind.ToString(), s.ColorHex, s.IsActive,

@@ -672,6 +672,7 @@ public sealed class ApplicationDbContext(
             b.HasIndex(d => new { d.TenantId, d.LeadId })
                 .HasFilter("lead_id IS NOT NULL");
             b.HasIndex(d => new { d.TenantId, d.IsDeleted });
+            b.HasIndex(d => new { d.TenantId, d.PipelineId, d.IsDeleted });
         });
 
         builder.Entity<DealActivity>(b =>
