@@ -62,9 +62,29 @@ export const navItems: NavItem[] = [
   },
   {
     id: 2,
-    displayName: 'Pipeline',
+    displayName: 'Deals',
+    iconName: 'solar:dollar-minimalistic-line-duotone',
+    route: '/crm/deals',
+    children: [
+      {
+        displayName: 'All Deals',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        subItemIcon: true,
+        route: '/crm/deals',
+      },
+      {
+        displayName: 'Pipeline View',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        subItemIcon: true,
+        route: '/crm/deals/pipeline',
+      },
+    ],
+  },
+  {
+    id: 2,
+    displayName: 'Pipelines',
     iconName: 'solar:clapperboard-edit-line-duotone',
-    route: '/crm/pipeline',
+    route: '/crm/pipelines',
   },
   {
     id: 2,

@@ -547,7 +547,7 @@ export class DealListComponent implements OnInit {
   ngOnInit(): void {
     // Load reference data in parallel with the first deals page
     this.pipelinesApi.list().subscribe(ps => this.pipelines.set(ps));
-    this.identityApi.listUsers({ pageSize: 200 }).subscribe(resp => this.users.set(resp.data));
+    this.identityApi.listUsers({ pageSize: 200 }).subscribe(resp => this.users.set(resp.items));
     this.reload();
   }
 

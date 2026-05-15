@@ -56,9 +56,19 @@ export const navItems: NavItem[] = [
         route: 'crm/companies',
       },
       {
-        displayName: 'Pipeline',
+        displayName: 'Deals',
         iconName: 'solar:round-alt-arrow-right-line-duotone',
-        route: 'crm/pipeline',
+        route: 'crm/deals',
+      },
+      {
+        displayName: 'Pipeline View',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        route: 'crm/deals/pipeline',
+      },
+      {
+        displayName: 'Pipelines',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        route: 'crm/pipelines',
       },
       {
         displayName: 'Invoices',

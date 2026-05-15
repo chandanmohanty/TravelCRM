@@ -325,7 +325,7 @@ export class DealFormComponent implements OnInit {
 
     // Load users for owner picker
     this.identityApi.listUsers({ pageSize: 200 }).subscribe({
-      next: resp => this.users.set(resp.data),
+      next: resp => this.users.set(resp.items),
     });
 
     // Default owner to current user

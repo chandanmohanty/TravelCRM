@@ -411,7 +411,7 @@ export class DealDetailComponent implements OnInit {
   ngOnInit(): void {
     // Load users for reassign picker
     this.identityApi.listUsers({ pageSize: 200 }).subscribe({
-      next: resp => this.users.set(resp.data),
+      next: resp => this.users.set(resp.items),
     });
 
     const dealId = this.panelData?.dealId ?? this.route.snapshot.paramMap.get('id');

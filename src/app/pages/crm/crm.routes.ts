@@ -29,11 +29,46 @@ export const CrmRoutes: Routes = [
           import('./companies/company-list/company-list.component').then((m) => m.CompanyListComponent),
         data: { title: 'Companies', breadcrumb: 'Companies' },
       },
+
+      // ── Deals ──────────────────────────────────────────────────────────────
+      {
+        path: 'deals',
+        loadComponent: () =>
+          import('./deals/deal-list/deal-list.component').then((m) => m.DealListComponent),
+        data: { title: 'Deals', breadcrumb: 'Deals' },
+      },
+      {
+        path: 'deals/pipeline',
+        loadComponent: () =>
+          import('./deals/deals-kanban/deals-kanban.component').then((m) => m.DealsKanbanComponent),
+        data: { title: 'Deals Pipeline', breadcrumb: 'Pipeline' },
+      },
+      {
+        path: 'deals/:id',
+        loadComponent: () =>
+          import('./deals/deal-detail/deal-detail.component').then((m) => m.DealDetailComponent),
+        data: { title: 'Deal Detail', breadcrumb: 'Deal Detail' },
+      },
+
+      // ── Pipelines ──────────────────────────────────────────────────────────
+      {
+        path: 'pipelines',
+        loadComponent: () =>
+          import('./pipelines/pipeline-list/pipeline-list.component').then((m) => m.PipelineListComponent),
+        data: { title: 'Pipelines', breadcrumb: 'Pipelines' },
+      },
+      {
+        path: 'pipelines/:id',
+        loadComponent: () =>
+          import('./pipelines/pipeline-edit/pipeline-edit.component').then((m) => m.PipelineEditComponent),
+        data: { title: 'Edit Pipeline', breadcrumb: 'Edit Pipeline' },
+      },
+
+      // ── Legacy redirect ────────────────────────────────────────────────────
       {
         path: 'pipeline',
-        loadComponent: () =>
-          import('./pipeline/pipeline.component').then((m) => m.PipelineComponent),
-        data: { title: 'Sales Pipeline', breadcrumb: 'Pipeline' },
+        redirectTo: 'deals/pipeline',
+        pathMatch: 'full',
       },
 
       // ── Travel ─────────────────────────────────────────────────────────────
