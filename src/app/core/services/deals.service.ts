@@ -31,6 +31,7 @@ export class DealsService {
     ownerUserId?: string;
     status?: DealStatus;
     hasLead?: boolean;
+    leadId?: string;
     search?: string;
     page?: number;
     pageSize?: number;

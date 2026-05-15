@@ -14,6 +14,7 @@ public sealed record ListDealsQuery(
     Guid? OwnerUserId = null,
     string? Status = null,    // "Open" | "Won" | "Lost"
     bool? HasLead = null,
+    Guid? LeadId = null,
     string? Search = null,
     int Page = 1,
     int PageSize = 50
@@ -46,6 +47,7 @@ public sealed class ListDealsHandler(
             query = query.Where(d => d.Status == st);
         if (q.HasLead == true)  query = query.Where(d => d.LeadId != null);
         if (q.HasLead == false) query = query.Where(d => d.LeadId == null);
+        if (q.LeadId.HasValue)  query = query.Where(d => d.LeadId == q.LeadId.Value);
         if (!string.IsNullOrEmpty(q.Search))
         {
             var pattern = $"%{q.Search}%";

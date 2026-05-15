@@ -1,26 +1,34 @@
 // src/app/pages/crm/leads/lead-form/lead-form.component.ts
-import { Component, ChangeDetectionStrategy, inject, OnInit, signal } from '@angular/core';
+import {
+  Component, ChangeDetectionStrategy, inject, OnInit, signal, DestroyRef,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { LeadsService, LeadWriteBody } from '../../../../core/services/leads.service';
-import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
-import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
+import { DealsService } from '../../../../core/services/deals.service';
+import { LeadStatus, LeadSource, DealDto } from '../../../../core/models/crm.models';
+import { SidePanelRef, SIDE_PANEL_DATA, SidePanelService } from '../../../../shared/side-panel';
+import { DealFormComponent } from '../../deals/deal-form/deal-form.component';
+import { DealDetailComponent } from '../../deals/deal-detail/deal-detail.component';
 
 @Component({
   selector: 'app-lead-form',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    ReactiveFormsModule, RouterLink,
+    CommonModule, ReactiveFormsModule, RouterLink,
     MatButtonModule, MatIconModule,
     MatFormFieldModule, MatInputModule, MatSelectModule,
-    MatSnackBarModule,
+    MatSnackBarModule, MatProgressSpinnerModule,
   ],
   template: `
     <div class="lf-wrap" [class.lf-page]="!isPanelMode">
@@ -78,7 +86,6 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
                 <mat-option value="Contacted">Contacted</mat-option>
                 <mat-option value="Qualified">Qualified</mat-option>
                 <mat-option value="Unqualified">Unqualified</mat-option>
-                <mat-option value="Converted">Converted</mat-option>
               </mat-select>
             </mat-form-field>
             <mat-form-field appearance="outline" subscriptSizing="dynamic">
@@ -134,6 +141,49 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
         </div>
 
       </form>
+
+      <!-- ── Deals section (edit mode only) ──────── -->
+      @if (!isNew()) {
+        <div class="lf-sep"></div>
+        <section class="lf-section lf-deals-section">
+          <div class="lf-deals-header">
+            <p class="lf-section-label" style="margin:0">Deals</p>
+            <button mat-stroked-button class="lf-new-deal-btn" type="button"
+                    (click)="openNewDeal()">
+              <mat-icon class="btn-icon">add</mat-icon> New Deal
+            </button>
+          </div>
+
+          @if (dealsLoading()) {
+            <div class="lf-deals-loading">
+              <mat-spinner diameter="24"></mat-spinner>
+            </div>
+          } @else if (deals().length === 0) {
+            <p class="lf-deals-empty">No deals linked to this lead yet.</p>
+          } @else {
+            <ul class="lf-deal-list">
+              @for (deal of deals(); track deal.id) {
+                <li class="lf-deal-item" (click)="openDealDetail(deal)">
+                  <div class="lf-deal-main">
+                    <span class="lf-deal-title">{{ deal.title }}</span>
+                    <span class="lf-deal-stage"
+                          [style.background]="deal.stageColor + '28'"
+                          [style.color]="deal.stageColor">
+                      {{ deal.stageName }}
+                    </span>
+                  </div>
+                  @if (deal.value != null) {
+                    <span class="lf-deal-value">
+                      {{ deal.value | currency:deal.currency:'symbol':'1.0-0' }}
+                    </span>
+                  }
+                </li>
+              }
+            </ul>
+          }
+        </section>
+      }
+
     </div>
   `,
   styles: [`
@@ -144,6 +194,7 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
       --lf-shadow:  rgba(15, 23, 42, .07);
       --lf-text-hi: #0f172a;
       --lf-text-dim:#94a3b8;
+      --lf-text-mid:#64748b;
     }
     :host-context(.dark-theme) {
       --lf-bg:      #1a2537;
@@ -151,6 +202,7 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
       --lf-shadow:  rgba(0, 0, 0, .22);
       --lf-text-hi: rgba(255, 255, 255, .90);
       --lf-text-dim:rgba(255, 255, 255, .38);
+      --lf-text-mid:rgba(255, 255, 255, .55);
     }
 
     /* ── Outer wrapper ──────────────────────────── */
@@ -194,22 +246,68 @@ import { SidePanelRef, SIDE_PANEL_DATA } from '../../../../shared/side-panel';
       border-top: 1px solid var(--lf-border); margin-top: 4px;
     }
     .btn-icon { font-size: 16px; width: 16px; height: 16px; margin-right: 4px; }
+
+    /* ── Deals section ──────────────────────────── */
+    .lf-deals-section { padding-top: 14px; }
+    .lf-deals-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .lf-new-deal-btn { height: 30px; font-size: 12px; line-height: 30px; }
+    .lf-deals-loading { display: flex; justify-content: center; padding: 16px; }
+    .lf-deals-empty {
+      font-size: 13px; color: var(--lf-text-dim); margin: 0;
+      font-style: italic;
+    }
+
+    /* ── Deal list ──────────────────────────────── */
+    .lf-deal-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+    .lf-deal-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 10px; border-radius: 8px;
+      border: 1px solid var(--lf-border);
+      cursor: pointer; transition: background 120ms;
+    }
+    .lf-deal-item:hover { background: rgba(99, 102, 241, .06); }
+    :host-context(.dark-theme) .lf-deal-item:hover {
+      background: rgba(255, 255, 255, .05);
+    }
+    .lf-deal-main { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+    .lf-deal-title {
+      font-size: 13px; font-weight: 600; color: var(--lf-text-hi);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .lf-deal-stage {
+      display: inline-block; padding: 2px 8px; border-radius: 12px;
+      font-size: 11px; font-weight: 600; white-space: nowrap; flex-shrink: 0;
+    }
+    .lf-deal-value {
+      font-size: 13px; font-weight: 700; color: var(--lf-text-hi);
+      white-space: nowrap; flex-shrink: 0; margin-left: 8px;
+    }
   `],
 })
 export class LeadFormComponent implements OnInit {
-  private readonly fb        = inject(FormBuilder);
-  private readonly api       = inject(LeadsService);
-  private readonly snack     = inject(MatSnackBar);
-  private readonly route     = inject(ActivatedRoute);
-  private readonly router    = inject(Router);
-  private readonly panelRef  = inject<SidePanelRef<'saved' | 'cancelled'> | null>(
+  private readonly fb          = inject(FormBuilder);
+  private readonly api         = inject(LeadsService);
+  private readonly dealsApi    = inject(DealsService);
+  private readonly snack       = inject(MatSnackBar);
+  private readonly route       = inject(ActivatedRoute);
+  private readonly router      = inject(Router);
+  private readonly sidePanel   = inject(SidePanelService);
+  private readonly destroyRef  = inject(DestroyRef);
+  private readonly panelRef    = inject<SidePanelRef<'saved' | 'cancelled'> | null>(
     SidePanelRef, { optional: true });
-  private readonly panelData = inject<{ id?: string } | null>(
+  private readonly panelData   = inject<{ id?: string } | null>(
     SIDE_PANEL_DATA, { optional: true });
   readonly isPanelMode = !!this.panelRef;
 
-  readonly saving = signal(false);
-  readonly isNew  = signal(true);
+  readonly saving       = signal(false);
+  readonly isNew        = signal(true);
+  readonly dealsLoading = signal(false);
+  readonly deals        = signal<DealDto[]>([]);
+
+  private leadId: string | null = null;
 
   form = this.fb.group({
     firstName:      ['', [Validators.required, Validators.maxLength(100)]],
@@ -231,7 +329,8 @@ export class LeadFormComponent implements OnInit {
     const id = this.panelData?.id ?? this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
-      this.api.get(id).subscribe({
+      this.leadId = id;
+      this.api.get(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
         next: r => {
           this.form.patchValue({
             firstName: r.firstName, lastName: r.lastName, email: r.email,
@@ -250,13 +349,56 @@ export class LeadFormComponent implements OnInit {
           else this.router.navigate(['/crm/leads']);
         },
       });
+      this.loadDeals(id);
     }
 
     if (this.panelRef) {
-      this.form.valueChanges.subscribe(() => {
+      this.form.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
         this.panelRef!.setDirty(this.form.dirty);
       });
     }
+  }
+
+  private loadDeals(leadId: string): void {
+    this.dealsLoading.set(true);
+    this.dealsApi.list({ leadId, pageSize: 50 }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: paged => {
+        this.deals.set(paged.items);
+        this.dealsLoading.set(false);
+      },
+      error: () => this.dealsLoading.set(false),
+    });
+  }
+
+  openNewDeal(): void {
+    if (!this.leadId) return;
+    const ref = this.sidePanel.open<DealFormComponent, { leadId: string }, 'saved' | 'cancelled'>(
+      DealFormComponent,
+      {
+        title:    'New Deal',
+        subtitle: 'Linked to this lead',
+        width:    '600px',
+        data:     { leadId: this.leadId },
+      },
+    );
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(result => {
+      if (result === 'saved' && this.leadId) this.loadDeals(this.leadId);
+    });
+  }
+
+  openDealDetail(deal: DealDto): void {
+    const ref = this.sidePanel.open<DealDetailComponent, { dealId: string }, 'saved' | 'cancelled'>(
+      DealDetailComponent,
+      {
+        title:    deal.title,
+        subtitle: deal.stageName,
+        width:    '600px',
+        data:     { dealId: deal.id },
+      },
+    );
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
+      if (this.leadId) this.loadDeals(this.leadId);
+    });
   }
 
   save(): void {
@@ -282,7 +424,7 @@ export class LeadFormComponent implements OnInit {
     const id = this.panelData?.id ?? this.route.snapshot.paramMap.get('id');
     const call$ = (id && id !== 'new') ? this.api.update(id, body) : this.api.create(body);
 
-    call$.subscribe({
+    call$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.saving.set(false);
         this.snack.open('Lead saved.', 'Close', { duration: 2500 });

@@ -7,6 +7,7 @@ import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { SidePanelService } from '../../../../shared/side-panel';
 import { LeadFormComponent } from '../lead-form/lead-form.component';
+import { DealFormComponent } from '../../deals/deal-form/deal-form.component';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatSortModule, MatSort } from '@angular/material/sort';
@@ -23,7 +24,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatCardModule } from '@angular/material/card';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { LeadsService, LeadDto } from '../../../../core/services/leads.service';
+import { LeadsService, LeadDto, LeadListFilters } from '../../../../core/services/leads.service';
 import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
 
 @Component({
@@ -87,11 +88,11 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
         <div class="ll-stat-sep"></div>
         <div class="ll-stat">
           <div class="ll-stat-icon" style="--c:#ffedd5;--t:#ea580c">
-            <i-tabler name="circle-arrow-right"></i-tabler>
+            <i-tabler name="briefcase"></i-tabler>
           </div>
           <div class="ll-stat-body">
-            <span class="ll-stat-num">{{ convertedLeads() }}</span>
-            <span class="ll-stat-lbl">Converted</span>
+            <span class="ll-stat-num">{{ leadsWithDeals() }}</span>
+            <span class="ll-stat-lbl">With Deals</span>
           </div>
         </div>
       </div>
@@ -126,6 +127,14 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
                 <mat-option *ngFor="let s of sources" [value]="s">{{ s }}</mat-option>
               </mat-select>
             </mat-form-field>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic" class="ll-filter-field">
+              <mat-label>Has Deals</mat-label>
+              <mat-select [(ngModel)]="hasDealsFilter" (ngModelChange)="onHasDealsChange()">
+                <mat-option value="">All</mat-option>
+                <mat-option value="true">With deals</mat-option>
+                <mat-option value="false">Without deals</mat-option>
+              </mat-select>
+            </mat-form-field>
           </div>
 
           <!-- table -->
@@ -140,7 +149,14 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
                       {{ row.firstName[0] }}{{ row.lastName[0] }}
                     </div>
                     <div class="ll-name-text">
-                      <span class="ll-name-primary">{{ row.firstName }} {{ row.lastName }}</span>
+                      <div class="ll-name-row">
+                        <span class="ll-name-primary">{{ row.firstName }} {{ row.lastName }}</span>
+                        @if ((row.dealCount ?? 0) > 0) {
+                          <span class="ll-deal-badge">
+                            {{ row.dealCount }} {{ row.dealCount === 1 ? 'deal' : 'deals' }}
+                          </span>
+                        }
+                      </div>
                       @if (row.jobTitle) {
                         <span class="ll-name-secondary">{{ row.jobTitle }}</span>
                       }
@@ -213,12 +229,10 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
                     <button mat-menu-item (click)="openForm(row)">
                       <i-tabler name="pencil" class="ll-icon-xs ll-mr"></i-tabler> Edit
                     </button>
-                    <button mat-menu-item (click)="convertLead(row)"
-                            [disabled]="row.status === 'Converted' || row.status === 'Unqualified'">
-                      <i-tabler name="arrow-right" class="ll-icon-xs ll-mr"></i-tabler> Convert
+                    <button mat-menu-item (click)="createDeal(row)">
+                      <i-tabler name="briefcase" class="ll-icon-xs ll-mr"></i-tabler> Create Deal
                     </button>
                     <button mat-menu-item (click)="deleteLead(row)"
-                            [disabled]="row.status === 'Converted'"
                             class="ll-danger-item">
                       <i-tabler name="trash" class="ll-icon-xs ll-mr"></i-tabler> Delete
                     </button>
@@ -363,9 +377,20 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
       display: flex; align-items: center; justify-content: center;
       font-size: 11px; font-weight: 700; color: #fff; flex-shrink: 0;
     }
-    .ll-name-text      { display: flex; flex-direction: column; line-height: 1.2; }
+    .ll-name-text    { display: flex; flex-direction: column; line-height: 1.2; }
+    .ll-name-row     { display: flex; align-items: center; gap: 6px; }
     .ll-name-primary   { font-size: 13px; font-weight: 600; color: var(--ll-text-hi); }
     .ll-name-secondary { font-size: 11.5px; color: var(--ll-text-dim); }
+
+    /* ── Deal count badge ───────────────────────── */
+    .ll-deal-badge {
+      display: inline-block; padding: 1px 7px; border-radius: 20px;
+      font-size: 10.5px; font-weight: 600; white-space: nowrap;
+      background: #dbeafe; color: #1d4ed8;
+    }
+    :host-context(.dark-theme) .ll-deal-badge {
+      background: rgba(59, 130, 246, .18); color: #93c5fd;
+    }
 
     /* ── Other cells ────────────────────────────── */
     .ll-company { font-size: 13px; color: var(--ll-text-lo); }
@@ -440,15 +465,16 @@ export class LeadListComponent implements OnInit, AfterViewInit {
   readonly totalLeads     = computed(() => this.leads$().length);
   readonly newLeads       = computed(() => this.leads$().filter(l => l.status === 'New').length);
   readonly qualifiedLeads = computed(() => this.leads$().filter(l => l.status === 'Qualified').length);
-  readonly convertedLeads = computed(() => this.leads$().filter(l => l.status === 'Converted').length);
+  readonly leadsWithDeals = computed(() => this.leads$().filter(l => (l.dealCount ?? 0) > 0).length);
 
   displayedColumns = ['name','company','status','score','source','estimatedValue','assignedTo','createdAt','actions'];
   dataSource = new MatTableDataSource<LeadDto>([]);
 
-  statusFilter = '';
-  sourceFilter = '';
+  statusFilter   = '';
+  sourceFilter   = '';
+  hasDealsFilter = '';
 
-  statuses: LeadStatus[] = ['New','Contacted','Qualified','Unqualified','Converted'];
+  statuses: LeadStatus[] = ['New','Contacted','Qualified','Unqualified'];
   sources: LeadSource[]  = ['Website','Referral','Social Media','Email Campaign','Trade Show','Cold Call','Partner','Other'];
 
   ngOnInit(): void { this.load(); }
@@ -461,6 +487,21 @@ export class LeadListComponent implements OnInit, AfterViewInit {
         subtitle: lead ? `${lead.firstName} ${lead.lastName}` : 'Capture a new prospect',
         width:    '560px',
         data:     { id: lead?.id },
+      },
+    );
+    ref.afterClosed().subscribe((result) => {
+      if (result === 'saved') this.load();
+    });
+  }
+
+  createDeal(lead: LeadDto): void {
+    const ref = this.sidePanel.open<DealFormComponent, { leadId: string }, 'saved' | 'cancelled'>(
+      DealFormComponent,
+      {
+        title:    'New Deal',
+        subtitle: `${lead.firstName} ${lead.lastName}${lead.company ? ' · ' + lead.company : ''}`,
+        width:    '600px',
+        data:     { leadId: lead.id },
       },
     );
     ref.afterClosed().subscribe((result) => {
@@ -482,7 +523,10 @@ export class LeadListComponent implements OnInit, AfterViewInit {
 
   private load(): void {
     this.loading.set(true);
-    this.api.list().subscribe({
+    const filters: LeadListFilters = {};
+    if (this.hasDealsFilter === 'true')  filters.hasDeals = true;
+    if (this.hasDealsFilter === 'false') filters.hasDeals = false;
+    this.api.list(filters).subscribe({
       next: rows => {
         this.leads$.set(rows);
         this.dataSource.data = rows;
@@ -504,17 +548,8 @@ export class LeadListComponent implements OnInit, AfterViewInit {
     this.dataSource.filter = JSON.stringify({ text: '', status: this.statusFilter, source: this.sourceFilter });
   }
 
-  convertLead(row: LeadDto): void {
-    if (!confirm(`Convert "${row.firstName} ${row.lastName}" to a customer?`)) return;
-    this.api.convert(row.id).subscribe({
-      next: updated => {
-        this.snack.open('Lead converted.', 'Close', { duration: 2500 });
-        const next = this.dataSource.data.map(l => l.id === updated.id ? updated : l);
-        this.dataSource.data = next;
-        this.leads$.set(next);
-      },
-      error: err => this.snack.open(err?.error?.error ?? 'Convert failed.', 'Close', { duration: 3500 }),
-    });
+  onHasDealsChange(): void {
+    this.load();
   }
 
   deleteLead(row: LeadDto): void {

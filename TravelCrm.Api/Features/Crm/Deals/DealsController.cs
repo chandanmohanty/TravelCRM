@@ -21,13 +21,14 @@ public sealed class DealsController(IMediator mediator) : ControllerBase
         [FromQuery] Guid? ownerUserId,
         [FromQuery] string? status,
         [FromQuery] bool? hasLead,
+        [FromQuery] Guid? leadId,
         [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50,
         CancellationToken ct = default)
     {
         var r = await mediator.Send(
-            new ListDealsQuery(pipelineId, stageId, ownerUserId, status, hasLead, search, page, pageSize), ct);
+            new ListDealsQuery(pipelineId, stageId, ownerUserId, status, hasLead, leadId, search, page, pageSize), ct);
         return r.IsSuccess ? Ok(r.Value) : Forbid();
     }
 
