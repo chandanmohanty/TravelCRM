@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
@@ -25,9 +25,10 @@ export class PipelinesService {
     null);
 
   list(includeInactive = false): Observable<PipelineDto[]> {
-    const params = includeInactive ? '?includeInactive=true' : '';
+    let params = new HttpParams();
+    if (includeInactive) params = params.set('includeInactive', 'true');
     return this.http
-      .get<PipelineDto[]>(`${this.apiBase}/api/crm/pipelines${params}`)
+      .get<PipelineDto[]>(`${this.apiBase}/api/crm/pipelines`, { params })
       .pipe(tap(p => this._pipelines.set(p)));
   }
 
