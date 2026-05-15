@@ -6,7 +6,6 @@ using TravelCrm.Api.Domain.Entities;
 using TravelCrm.Api.Features.Leads.Commands;
 using TravelCrm.Api.Features.Leads.Queries;
 
-
 namespace TravelCrm.Api.Features.Leads;
 
 [Authorize]

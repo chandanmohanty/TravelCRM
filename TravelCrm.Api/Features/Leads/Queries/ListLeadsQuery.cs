@@ -40,17 +40,22 @@ public sealed class ListLeadsQueryHandler(
 
         // hasDeals filter
         if (q.HasDeals == true)
-            query = query.Where(l => db.Deals.Any(d => d.LeadId == l.Id && !d.IsDeleted));
+            query = query.Where(l => db.Deals.Any(d => d.LeadId == l.Id && d.TenantId == tenantId && !d.IsDeleted));
         else if (q.HasDeals == false)
-            query = query.Where(l => !db.Deals.Any(d => d.LeadId == l.Id && !d.IsDeleted));
+            query = query.Where(l => !db.Deals.Any(d => d.LeadId == l.Id && d.TenantId == tenantId && !d.IsDeleted));
+
+        var page = Math.Max(1, q.Page);
+        var size = Math.Clamp(q.PageSize, 1, 200);
 
         // Single query with correlated subquery count — avoids N+1
         var rows = await query
             .Select(l => new
             {
                 Lead     = l,
-                DealCount = db.Deals.Count(d => d.LeadId == l.Id && !d.IsDeleted)
+                DealCount = db.Deals.Count(d => d.LeadId == l.Id && d.TenantId == tenantId && !d.IsDeleted)
             })
+            .Skip((page - 1) * size)
+            .Take(size)
             .ToListAsync(ct);
 
         var items = rows
