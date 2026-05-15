@@ -107,14 +107,39 @@ src/app/pages/crm/pipeline/                               (stub replaced)
 
 ---
 
+## ▶ EXECUTION PROGRESS
+
+> **Last updated:** 2026-05-14 · **HEAD:** `09a3907` · pushed to `origin/master`
+>
+> **Tasks 1–5 COMPLETE** (subagent-driven, both review stages passed + fixes applied):
+>
+> | Task | Commits | Notes |
+> |---|---|---|
+> | 1 Domain entities | `ec5e502`, `f84121a` | + audit-field fix on Pipeline/PipelineStage |
+> | 2 EF config + migration | `a76043c`, `ac0a483` | migration `20260512194802_AddDealsAndPipelines`; Tags converter extracted to shared `_pipeListConverter`/`_pipeListComparer` |
+> | 3 Permissions | `315298e`, `5bd37f6` | Admin=all4, Manager=view+manage, ReadOnly=view |
+> | 4 PipelineSeeder | `a946856`, `75ae3f1` | `LeadStatus.Converted = 5` (1-based enum); uses ILogger |
+> | 5 Pipelines DTOs + queries | `546fce2`, `09a3907` | + migration `20260515193647_DealPipelineIndex` ((TenantId,PipelineId,IsDeleted)) |
+>
+> **RESUME AT TASK 6.** Working notes for the next session:
+> - Branch: `master`, no worktree. Pre-existing unstaged `src/assets/scss/_container.scss` is unrelated — never stage it.
+> - DB connection (user-secrets): `Host=localhost;Port=5432;Database=travelcrm;Username=postgres;Password=Cl0ud@2026$`. psql at `C:\Program Files\PostgreSQL\18\bin\psql.exe`.
+> - Always `Get-Process -Name "TravelCrm.Api" | Stop-Process -Force` before `dotnet build` (dev server locks the .exe).
+> - 5 pre-existing build warnings are EXPECTED & acceptable: 3× CS0618 in `ConvertLeadCommand.cs`/`DeleteLeadCommand.cs` (Task 17 removes/rewrites them), 2× CS9113 in `RefreshCommandHandler.cs`/`ForgotPasswordCommand.cs` (unrelated).
+> - `crm.deals.*` + `crm.pipelines.manage` permission slugs are seeded. `crm.deals.view` gates queries, `crm.deals.manage` gates writes, `crm.deals.delete` gates delete, `crm.pipelines.manage` gates pipeline/stage admin.
+> - `EFCore.NamingConventions` auto snake_cases all tables/columns — never add manual `[Table]`/`[Column]`.
+> - Codebase conventions confirmed by Task 5: `Result<T>` in `TravelCrm.Api.Common`; `ICurrentUser.HasPermission(string)`; `ITenantContext.IsResolved`/`.TenantId`; tenant scoping is explicit per-handler (no global filters).
+
+---
+
 ## Task Index
 
-1. Domain entities + enums
-2. EF configuration + migration
-3. PermissionCatalog + RolePermissionSeeder updates
-4. PipelineSeeder + Lead.Converted backfill, wired into SeedData
-5. Pipelines DTOs + List/Get queries
-6. Pipelines commands (Create/Update/Delete)
+1. ~~Domain entities + enums~~ ✅
+2. ~~EF configuration + migration~~ ✅
+3. ~~PermissionCatalog + RolePermissionSeeder updates~~ ✅
+4. ~~PipelineSeeder + Lead.Converted backfill, wired into SeedData~~ ✅
+5. ~~Pipelines DTOs + List/Get queries~~ ✅
+6. Pipelines commands (Create/Update/Delete)  ← **RESUME HERE**
 7. Stage commands (Add/Update/Delete/Reorder)
 8. PipelinesController
 9. Deal DTOs + DealActivityLogger
@@ -556,16 +581,19 @@ Find the `LeadStatus` enum (likely in `TravelCrm.Api/Domain/Entities/Lead.cs` or
 ```csharp
 public enum LeadStatus
 {
-    New = 0,
-    Contacted = 1,
-    Qualified = 2,
-    Unqualified = 3,
+    New = 1,
+    Contacted = 2,
+    Qualified = 3,
+    Unqualified = 4,
     [Obsolete("Retired in Phase 1. Use a Deal to express conversion. Existing rows backfilled to Qualified.")]
-    Converted = 4,
+    Converted = 5,
 }
 ```
 
-Do not remove the enum value — historical migrations reference it.
+NOTE: the actual enum is **1-based** (`New = 1` … `Converted = 5`). Read the
+real `Lead.cs` first and preserve whatever numeric values exist — only add the
+`[Obsolete]` attribute. Do not remove the enum value — historical migrations
+reference it.
 
 - [ ] **Step 2: Create `PipelineSeeder.cs`**
 
