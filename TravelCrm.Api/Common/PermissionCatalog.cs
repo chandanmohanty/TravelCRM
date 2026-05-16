@@ -122,6 +122,13 @@ public static class PermissionCatalog
         items.Add(New("crm", "pipelines", "manage", "Manage Pipelines", 721,
             "Create, edit, reorder and delete pipelines and stages."));
 
+        // CRM — Leads (handlers gate on crm.leads.view / crm.leads.manage;
+        // delete is covered by .manage, matching the crm.tasks pattern)
+        items.Add(New("crm", "leads", "view", "View Leads", 730,
+            "List and view leads within the tenant."));
+        items.Add(New("crm", "leads", "manage", "Manage Leads", 731,
+            "Create, edit, and delete leads, and create deals from a lead."));
+
         // Inventory — Suppliers / Resources / Calendar / Holds (foundation)
         items.Add(New("inventory", "suppliers", "view", "View Suppliers", 800,
             "Read suppliers in the tenant."));

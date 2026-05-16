@@ -110,6 +110,8 @@ public static class RolePermissionSeeder
             // CRM — deals + pipelines (full for admin)
             "crm.deals.view", "crm.deals.manage", "crm.deals.delete",
             "crm.pipelines.manage",
+            // CRM — leads (full for admin)
+            "crm.leads.view", "crm.leads.manage",
             // Inventory — full
             "inventory.suppliers.view", "inventory.suppliers.manage",
             "inventory.resources.view", "inventory.resources.manage",
@@ -130,6 +132,8 @@ public static class RolePermissionSeeder
             "crm.tasks.view", "crm.tasks.manage",
             // CRM — deals (managers can work deals but not delete or manage pipelines)
             "crm.deals.view", "crm.deals.manage",
+            // CRM — leads (managers can create / edit / delete leads)
+            "crm.leads.view", "crm.leads.manage",
             // Inventory — managers can manage resources/calendar/holds but not suppliers
             "inventory.suppliers.view",
             "inventory.resources.view", "inventory.resources.manage",
@@ -144,9 +148,10 @@ public static class RolePermissionSeeder
             "admin.departments.view",
             "admin.settings.view",
             "dashboard.overview.view",
-            // CRM — read-only users can view tasks and deals
+            // CRM — read-only users can view tasks, deals, and leads
             "crm.tasks.view",
             "crm.deals.view",
+            "crm.leads.view",
             // Inventory — read-only sees the catalog
             "inventory.suppliers.view",
             "inventory.resources.view",
