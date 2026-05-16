@@ -407,13 +407,12 @@ export interface Address {
   country: string;
 }
 
-export interface PaginatedResponse<T> {
-  data: T[];
-  total: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
+// NOTE: the app-wide pagination envelope is `PaginatedResponse<T>` in
+// `core/models/identity.model.ts` — it mirrors the backend
+// Common.PaginatedResponse<T> ({ items, page, pageSize, totalCount, totalPages }).
+// A duplicate previously lived here with a WRONG shape ({ data, total }) and was
+// imported by nobody; removed to keep a single source of truth. Import from
+// identity.model.ts when a paginated CRM endpoint needs it.
 
 export interface ApiResponse<T> {
   success: boolean;

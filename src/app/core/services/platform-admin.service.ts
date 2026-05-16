@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../tokens/api-base-url.token';
+import { PaginatedResponse } from '../models/identity.model';
 
 export interface TenantDto {
   id: string;
@@ -22,13 +23,8 @@ export interface PlatformStatsDto {
   usersByPlan: Record<string, number>;
 }
 
-export interface PaginatedResponse<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-  totalPages: number;
-}
+// PaginatedResponse<T> now comes from the single app-wide source:
+// core/models/identity.model.ts (imported above).
 
 export interface CreateTenantRequest {
   name: string;

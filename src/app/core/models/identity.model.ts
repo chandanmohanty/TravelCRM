@@ -189,6 +189,12 @@ export interface ResetPasswordRequest {
 }
 
 // ── Pagination envelope (mirrors Common.PaginatedResponse<T>) ────────────────
+// App-wide single source of truth for paginated API responses — not
+// identity-specific. Imported by identity-api, platform-admin, and any other
+// service consuming the backend's standard { items, page, pageSize,
+// totalCount, totalPages } envelope. (CRM's deals list uses a distinct,
+// minimal `PagedDeals` { items, total } shape — that backend contract is
+// intentionally different and lives in deals.service.ts.)
 
 export interface PaginatedResponse<T> {
   items:      T[];

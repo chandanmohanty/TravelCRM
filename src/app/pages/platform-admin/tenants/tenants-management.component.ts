@@ -280,7 +280,7 @@ export class TenantsManagementComponent implements OnInit {
   load(): void {
     this.loading.set(true);
     this.svc.getTenants(this.page, this.pageSize, this.search()).subscribe({
-      next: (res: import('../../../core/services/platform-admin.service').PaginatedResponse<TenantDto>) => {
+      next: (res: import('../../../core/models/identity.model').PaginatedResponse<TenantDto>) => {
         this.tenants.set(res.items);
         this.totalCount.set(res.totalCount);
         this.loading.set(false);
