@@ -43,6 +43,11 @@ public static class RecurringJobRegistrar
             recurringJobId: "lead-import-staging-sweep",
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
             cronExpression: Cron.Hourly);
+
+        jobs.AddOrUpdate<LeadImportSyncDispatcherJob>(
+            recurringJobId: "lead-import-sync-dispatcher",
+            methodCall:     j => j.ExecuteAsync(CancellationToken.None),
+            cronExpression: "*/5 * * * *");
     }
 }
 

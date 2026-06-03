@@ -127,6 +127,7 @@ builder.Services.AddScoped<TravelCrm.Api.Features.Crm.LeadImport.Parsing.ITabula
     TravelCrm.Api.Features.Crm.LeadImport.Parsing.CsvLeadParser>();
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.LeadImportStagingSweepJob>();
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.RunLeadImportSyncJob>();
+builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.LeadImportSyncDispatcherJob>();
 
 // File storage abstraction — resolves per-request from DB-configured active backend
 // (tenant → platform fallback → appsettings local-disk default)
