@@ -59,6 +59,10 @@ public sealed class ApplicationDbContext(
 
     // ── CRM ───────────────────────────────────────────────────────────────────
     public DbSet<Lead> Leads => Set<Lead>();
+    public DbSet<LeadImportSource> LeadImportSources => Set<LeadImportSource>();
+    public DbSet<LeadImportRowState> LeadImportRowStates => Set<LeadImportRowState>();
+    public DbSet<GoogleOAuthToken> GoogleOAuthTokens => Set<GoogleOAuthToken>();
+    public DbSet<LeadImportStaging> LeadImportStagings => Set<LeadImportStaging>();
 
     // ── Task Management ───────────────────────────────────────────────────────
     public DbSet<TenantTask> TenantTasks => Set<TenantTask>();
@@ -686,6 +690,56 @@ public sealed class ApplicationDbContext(
             b.HasOne<Deal>().WithMany().HasForeignKey(a => a.DealId)
                 .OnDelete(DeleteBehavior.Cascade);
             b.HasIndex(a => new { a.TenantId, a.DealId, a.OccurredAt });
+        });
+
+        builder.Entity<LeadImportSource>(b =>
+        {
+            b.HasKey(s => s.Id);
+            b.Property(s => s.Kind).HasConversion<int>();
+            b.Property(s => s.Status).HasConversion<int>();
+            b.Property(s => s.SyncCadence).HasConversion<int>();
+            b.Property(s => s.DisplayName).HasMaxLength(200).IsRequired();
+            b.Property(s => s.SpreadsheetId).HasMaxLength(200).IsRequired();
+            b.Property(s => s.SheetName).HasMaxLength(200).IsRequired();
+            b.Property(s => s.MatchKeyField).HasMaxLength(50).IsRequired();
+            b.Property(s => s.ColumnMapping).HasColumnType("jsonb");
+            b.Property(s => s.LastResultJson).HasColumnType("jsonb");
+            b.Property(s => s.LastError).HasMaxLength(1000);
+            b.Property(s => s.RowVersion).IsRowVersion();
+            b.HasIndex(s => new { s.TenantId, s.Status });
+        });
+
+        builder.Entity<LeadImportRowState>(b =>
+        {
+            b.HasKey(r => r.Id);
+            b.Property(r => r.MatchKey).HasMaxLength(256).IsRequired();
+            b.Property(r => r.ContentHash).HasMaxLength(64).IsRequired();
+            b.HasIndex(r => new { r.ImportSourceId, r.MatchKey }).IsUnique();
+            b.HasOne<LeadImportSource>()
+                .WithMany()
+                .HasForeignKey(r => r.ImportSourceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<GoogleOAuthToken>(b =>
+        {
+            // Force explicit table name — naming convention would split "OAuth" → "o_auth".
+            b.ToTable("google_oauth_tokens");
+            b.HasKey(t => t.Id);
+            // Refresh token encrypted at rest — same converter as AiProviderConfiguration.ApiKey.
+            b.Property(t => t.RefreshToken).HasMaxLength(4000).HasConversion(_protectedString);
+            b.Property(t => t.GrantedScopes).HasMaxLength(500);
+            b.HasIndex(t => t.TenantId).IsUnique();
+        });
+
+        builder.Entity<LeadImportStaging>(b =>
+        {
+            // Singular table name — short-lived buffer, not a domain plural.
+            b.ToTable("lead_import_staging");
+            b.HasKey(x => x.Id);
+            b.Property(x => x.RowsJson).HasColumnType("jsonb");
+            b.Property(x => x.HeadersJson).HasColumnType("jsonb");
+            b.HasIndex(x => new { x.TenantId, x.CreatedAt });
         });
     }
 

@@ -10,8 +10,10 @@ public sealed class GoogleOAuthToken
     public Guid Id { get; set; } = Guid.NewGuid();
     public Guid TenantId { get; set; }
 
-    /// <summary>SENSITIVE — encrypted at rest.</summary>
-    public string RefreshToken { get; set; } = string.Empty;
+    /// <summary>SENSITIVE — encrypted at rest. Nullable to align with the
+    /// ProtectedStringConverter signature (same pattern as AiProviderConfiguration.ApiKey).
+    /// In practice always populated when a tenant has connected Google.</summary>
+    public string? RefreshToken { get; set; }
     public string GrantedScopes { get; set; } = string.Empty;
     public Guid ConnectedByUserId { get; set; }
     public DateTime ConnectedAt { get; set; } = DateTime.UtcNow;

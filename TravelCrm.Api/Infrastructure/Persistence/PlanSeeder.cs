@@ -163,6 +163,7 @@ public static class PlanSeeder
                 FeatureCatalog.CoreCrm, FeatureCatalog.CoreTasks, FeatureCatalog.CoreInventory,
                 FeatureCatalog.CoreSettings,
                 FeatureCatalog.PipelineKanban,
+                FeatureCatalog.LeadImport,
             }),
 
         // ── Starter ─────────────────────────────────────────────────────────
@@ -183,6 +184,7 @@ public static class PlanSeeder
                 FeatureCatalog.LeadSourceIndiaMart, FeatureCatalog.LeadSourceTradeIndia,
                 FeatureCatalog.CallSync,
                 FeatureCatalog.StandardReports,
+                FeatureCatalog.LeadImport,
             }),
 
         // ── Grow ────────────────────────────────────────────────────────────
@@ -215,6 +217,7 @@ public static class PlanSeeder
                 FeatureCatalog.WidgetDealBar, FeatureCatalog.WidgetCookieBanner,
                 FeatureCatalog.Webhooks,
                 FeatureCatalog.StandardReports,
+                FeatureCatalog.LeadImport,
             }),
 
         // ── Scale ───────────────────────────────────────────────────────────
@@ -255,6 +258,7 @@ public static class PlanSeeder
                 FeatureCatalog.Webhooks, FeatureCatalog.ZapierIntegration,
                 FeatureCatalog.AiCredits, FeatureCatalog.AiWebsiteChatbot,
                 FeatureCatalog.StandardReports, FeatureCatalog.CustomReports,
+                FeatureCatalog.LeadImport,
             }),
 
         // ── Business Suite ──────────────────────────────────────────────────
