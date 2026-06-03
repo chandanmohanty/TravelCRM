@@ -392,7 +392,8 @@ public sealed class ApplicationDbContext(
             b.HasKey(l => l.Id);
             b.Property(l => l.FirstName).HasMaxLength(100).IsRequired();
             b.Property(l => l.LastName).HasMaxLength(100).IsRequired();
-            b.Property(l => l.Email).HasMaxLength(256).IsRequired();
+            b.Property(l => l.Email).HasMaxLength(256).IsRequired()
+                .HasConversion(new EmailLowerTrimConverter());
             b.Property(l => l.Phone).HasMaxLength(50).IsRequired(false);
             b.Property(l => l.Company).HasMaxLength(200).IsRequired(false);
             b.Property(l => l.JobTitle).HasMaxLength(200).IsRequired(false);
