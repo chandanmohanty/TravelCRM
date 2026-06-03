@@ -1,4 +1,5 @@
 using System.Text.Json;
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
@@ -18,6 +19,24 @@ public sealed record UpdateLeadImportSourceCommand(
     string MatchKeyField,
     string SyncCadence)
     : IRequest<Result<LeadImportSourceDto>>;
+
+public sealed class UpdateLeadImportSourceCommandValidator
+    : AbstractValidator<UpdateLeadImportSourceCommand>
+{
+    public UpdateLeadImportSourceCommandValidator()
+    {
+        RuleFor(x => x.Id).NotEmpty();
+        RuleFor(x => x.RowVersion).NotEmpty();
+        RuleFor(x => x.DisplayName).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.SheetName).NotEmpty().MaximumLength(200);
+        RuleFor(x => x.MatchKeyField).NotEmpty().MaximumLength(50);
+        RuleFor(x => x.SyncCadence).NotEmpty();
+        RuleFor(x => x.ColumnMapping)
+            .NotNull()
+            .Must(m => m != null && m.ContainsKey("email") && !string.IsNullOrWhiteSpace(m["email"]))
+            .WithMessage("ColumnMapping must include a mapping for 'email'.");
+    }
+}
 
 public sealed class UpdateLeadImportSourceCommandHandler(
     ApplicationDbContext db, ITenantContext tenant, ICurrentUser user)
@@ -59,6 +78,6 @@ public sealed class UpdateLeadImportSourceCommandHandler(
             return Result.Failure<LeadImportSourceDto>(
                 "This connection was changed elsewhere. Reload and retry.");
         }
-        return Result.Success(CreateLeadImportSourceCommandHandler.MapToDto(src));
+        return Result.Success(LeadImportSourceMapper.ToDto(src));
     }
 }

@@ -1,4 +1,3 @@
-using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using TravelCrm.Api.Common;
@@ -28,27 +27,8 @@ public sealed class ListLeadImportSourcesQueryHandler(
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(ct);
 
-        var dtos = sources.Select(s => new LeadImportSourceDto(
-            s.Id,
-            s.DisplayName,
-            s.SpreadsheetId,
-            s.SheetName,
-            DeserialiseMapping(s.ColumnMapping),
-            s.MatchKeyField,
-            s.SyncCadence.ToString(),
-            s.Status.ToString(),
-            s.LastPolledAt,
-            s.LastSuccessAt,
-            s.LastResultJson,
-            s.LastError,
-            Convert.ToBase64String(s.RowVersion))).ToList();
+        var dtos = sources.Select(LeadImportSourceMapper.ToDto).ToList();
 
         return Result.Success<IReadOnlyList<LeadImportSourceDto>>(dtos);
     }
-
-    private static Dictionary<string, string> DeserialiseMapping(string json) =>
-        string.IsNullOrWhiteSpace(json)
-            ? new Dictionary<string, string>()
-            : JsonSerializer.Deserialize<Dictionary<string, string>>(json)
-              ?? new Dictionary<string, string>();
 }
