@@ -116,6 +116,17 @@ builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.ReminderJob>();
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.OverdueTasksJob>();
 builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.HoldExpirySweepJob>();
 
+// Lead import — engine, tabular parsers, and the hourly staging sweep job.
+// Two AddScoped calls for ITabularLeadParser is intentional: IEnumerable<ITabularLeadParser>
+// resolves both, mirroring how IPipelineBehavior is registered.
+builder.Services.AddScoped<TravelCrm.Api.Features.Crm.LeadImport.ILeadImportEngine,
+    TravelCrm.Api.Features.Crm.LeadImport.LeadImportEngine>();
+builder.Services.AddScoped<TravelCrm.Api.Features.Crm.LeadImport.Parsing.ITabularLeadParser,
+    TravelCrm.Api.Features.Crm.LeadImport.Parsing.ClosedXmlLeadParser>();
+builder.Services.AddScoped<TravelCrm.Api.Features.Crm.LeadImport.Parsing.ITabularLeadParser,
+    TravelCrm.Api.Features.Crm.LeadImport.Parsing.CsvLeadParser>();
+builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Jobs.LeadImportStagingSweepJob>();
+
 // File storage abstraction — resolves per-request from DB-configured active backend
 // (tenant → platform fallback → appsettings local-disk default)
 builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection("FileStorage"));

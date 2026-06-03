@@ -38,6 +38,11 @@ public static class RecurringJobRegistrar
             methodCall:     j => j.ExecuteAsync(CancellationToken.None),
             cronExpression: "0 2 * * *",
             options:        new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+
+        jobs.AddOrUpdate<LeadImportStagingSweepJob>(
+            recurringJobId: "lead-import-staging-sweep",
+            methodCall:     j => j.ExecuteAsync(CancellationToken.None),
+            cronExpression: Cron.Hourly);
     }
 }
 
