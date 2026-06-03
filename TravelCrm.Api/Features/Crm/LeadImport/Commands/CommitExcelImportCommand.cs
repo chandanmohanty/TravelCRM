@@ -26,7 +26,9 @@ public sealed class CommitExcelImportCommandHandler(
             s => s.Id == cmd.StagingId && s.TenantId == tenant.TenantId!.Value, ct);
         if (staging is null) return Result.Failure<LeadImportResult>("Upload session expired. Please re-upload.");
 
-        var rows = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(staging.RowsJson)!
+        // Defensive: treat a literal "null" / corrupt payload as empty rather than NRE.
+        var rows = (JsonSerializer.Deserialize<List<Dictionary<string, string>>>(staging.RowsJson)
+                    ?? new List<Dictionary<string, string>>())
             .Select(d => (IReadOnlyDictionary<string, string>)d).ToList();
 
         var result = await engine.ApplyAsync(

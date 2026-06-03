@@ -26,7 +26,9 @@ public sealed class PreviewImportCommandHandler(
             s => s.Id == cmd.StagingId && s.TenantId == tenant.TenantId!.Value, ct);
         if (staging is null) return Result.Failure<PreviewResultDto>("Upload session expired. Please re-upload.");
 
-        var rows = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(staging.RowsJson)!;
+        // Defensive: treat a literal "null" / corrupt payload as empty rather than NRE.
+        var rows = JsonSerializer.Deserialize<List<Dictionary<string, string>>>(staging.RowsJson)
+                   ?? new List<Dictionary<string, string>>();
 
         // Existing emails are already canonical (Task 6 follow-up B normalised the column),
         // so a plain hash lookup is enough.
