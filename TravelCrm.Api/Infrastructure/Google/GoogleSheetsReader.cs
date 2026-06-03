@@ -21,13 +21,25 @@ public sealed class GoogleSheetsReader : ISheetsReader
             ApplicationName = "TravelCRMPlus",
         });
 
+    /// <summary>
+    /// A1 notation requires sheet names containing anything other than
+    /// [A-Za-z0-9_] to be wrapped in single quotes, with embedded single
+    /// quotes doubled. Without this, "Form Responses 1" → 400 from Sheets.
+    /// </summary>
+    private static string QuoteA1(string tab)
+    {
+        var needsQuote = string.IsNullOrEmpty(tab)
+            || tab.Any(c => !(char.IsLetterOrDigit(c) || c == '_'));
+        return needsQuote ? "'" + tab.Replace("'", "''") + "'" : tab;
+    }
+
     public async Task<IReadOnlyList<SheetTab>> ListTabsAsync(string accessToken, string spreadsheetId, CancellationToken ct)
     {
         using var svc = NewService(accessToken);
         var req = svc.Spreadsheets.Get(spreadsheetId);
         req.Fields = "sheets.properties.title";
         var result = await req.ExecuteAsync(ct);
-        return result.Sheets
+        return (result.Sheets ?? Array.Empty<global::Google.Apis.Sheets.v4.Data.Sheet>())
             .Select(s => new SheetTab(s.Properties.Title))
             .ToList();
     }
@@ -35,7 +47,7 @@ public sealed class GoogleSheetsReader : ISheetsReader
     public async Task<SheetValues> ReadAsync(string accessToken, string spreadsheetId, string tab, CancellationToken ct)
     {
         using var svc = NewService(accessToken);
-        var req = svc.Spreadsheets.Values.Get(spreadsheetId, $"{tab}!A:Z");
+        var req = svc.Spreadsheets.Values.Get(spreadsheetId, $"{QuoteA1(tab)}!A:Z");
         var resp = await req.ExecuteAsync(ct);
         var raw = resp.Values;
         if (raw is null || raw.Count == 0)
