@@ -139,6 +139,17 @@ builder.Services.Configure<TravelCrm.Api.Infrastructure.Google.GoogleSheetsOptio
     builder.Configuration.GetSection(
         TravelCrm.Api.Infrastructure.Google.GoogleSheetsOptions.SectionName));
 
+// Google Sheets foundation (T9): access-token cache, HttpClient for revoke,
+// and the three interface/impl pairs that wrap the SDK so callers stay testable.
+builder.Services.AddMemoryCache();
+builder.Services.AddHttpClient();
+builder.Services.AddSingleton<TravelCrm.Api.Infrastructure.Google.IGoogleSheetsGate,
+    TravelCrm.Api.Infrastructure.Google.GoogleSheetsGate>();
+builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Google.IGoogleTokenProvider,
+    TravelCrm.Api.Infrastructure.Google.GoogleTokenProvider>();
+builder.Services.AddScoped<TravelCrm.Api.Infrastructure.Google.ISheetsReader,
+    TravelCrm.Api.Infrastructure.Google.GoogleSheetsReader>();
+
 // Multipart upload limit (matches RequestSizeLimit attribute on branding upload endpoints)
 builder.Services.Configure<FormOptions>(opts =>
 {
