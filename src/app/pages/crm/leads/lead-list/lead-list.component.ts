@@ -27,6 +27,8 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { LeadsService, LeadDto, LeadListFilters } from '../../../../core/services/leads.service';
 import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
+import { HasFeatureDirective } from '../../../../core/directives/has-feature.directive';
+import { ExcelImportWizardComponent } from '../import/excel-import-wizard.component';
 
 @Component({
   selector: 'app-lead-list',
@@ -40,6 +42,7 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     MatTooltipModule, MatMenuModule, MatProgressBarModule,
     MatProgressSpinnerModule, MatCardModule, MatSnackBarModule,
     TablerIconsModule,
+    HasFeatureDirective,
   ],
   template: `
     <div class="ll-page">
@@ -50,9 +53,29 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
           <h2 class="ll-title">Leads</h2>
           <p class="ll-sub">Track and manage potential customers</p>
         </div>
-        <button mat-flat-button color="primary" class="ll-add-btn" (click)="openForm()">
-          <i-tabler name="plus" class="ll-btn-icon"></i-tabler> Add Lead
-        </button>
+        <div class="ll-header-actions">
+          <button mat-stroked-button class="ll-import-btn"
+                  [matMenuTriggerFor]="importMenu"
+                  *hasFeature="'lead_import'">
+            <i-tabler name="upload" class="ll-btn-icon"></i-tabler>
+            Import Leads
+            <mat-icon class="ll-import-caret">arrow_drop_down</mat-icon>
+          </button>
+          <mat-menu #importMenu="matMenu">
+            <button mat-menu-item (click)="openExcelImport()">
+              <mat-icon>upload_file</mat-icon>
+              <span>Bulk Upload from Excel File</span>
+            </button>
+            <button mat-menu-item (click)="openGoogleSheets()">
+              <mat-icon>table_chart</mat-icon>
+              <span>Connect Google Sheet</span>
+            </button>
+          </mat-menu>
+
+          <button mat-flat-button color="primary" class="ll-add-btn" (click)="openForm()">
+            <i-tabler name="plus" class="ll-btn-icon"></i-tabler> Add Lead
+          </button>
+        </div>
       </div>
 
       <!-- ── KPI strip ─────────────────────────────── -->
@@ -299,6 +322,9 @@ import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
     .ll-sub    { margin: 2px 0 0; font-size: 13px; color: var(--ll-text-muted); }
     .ll-add-btn  { height: 36px; font-size: 13px; font-weight: 600; border-radius: 8px; }
     .ll-btn-icon { width: 16px; height: 16px; margin-right: 4px; vertical-align: middle; }
+    .ll-header-actions { display: flex; align-items: center; gap: 8px; }
+    .ll-import-btn { height: 36px; font-size: 13px; font-weight: 600; border-radius: 8px; }
+    .ll-import-caret { width: 18px; height: 18px; font-size: 18px; margin-left: 2px; vertical-align: middle; }
 
     /* ── KPI strip ──────────────────────────────── */
     .ll-stats {
@@ -492,6 +518,25 @@ export class LeadListComponent implements OnInit, AfterViewInit {
     ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((result) => {
       if (result === 'saved') this.load();
     });
+  }
+
+  openExcelImport(): void {
+    const ref = this.sidePanel.open<ExcelImportWizardComponent, void, boolean>(
+      ExcelImportWizardComponent,
+      {
+        title:    'Bulk Upload Leads',
+        subtitle: 'Excel or CSV',
+        width:    '560px',
+      },
+    );
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((refreshed) => {
+      if (refreshed) this.load();
+    });
+  }
+
+  openGoogleSheets(): void {
+    // Wired in Task 14 (Google Sheets wizard).
+    this.snack.open('Google Sheets sync is coming soon.', 'Close', { duration: 2500 });
   }
 
   createDeal(lead: LeadDto): void {
