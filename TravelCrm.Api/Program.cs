@@ -122,6 +122,12 @@ builder.Services.Configure<FileStorageOptions>(builder.Configuration.GetSection(
 builder.Services.AddScoped<FileStorageResolver>();
 builder.Services.AddScoped<IFileStorage>(sp => sp.GetRequiredService<FileStorageResolver>().Resolve());
 
+// Google Sheets OAuth app config — empty ClientId leaves the Google sync path dormant
+// (Excel import remains fully functional).
+builder.Services.Configure<TravelCrm.Api.Infrastructure.Google.GoogleSheetsOptions>(
+    builder.Configuration.GetSection(
+        TravelCrm.Api.Infrastructure.Google.GoogleSheetsOptions.SectionName));
+
 // Multipart upload limit (matches RequestSizeLimit attribute on branding upload endpoints)
 builder.Services.Configure<FormOptions>(opts =>
 {

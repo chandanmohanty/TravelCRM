@@ -36,6 +36,7 @@ public static class FeatureCatalog
     public const string LeadSourceTradeIndia= "lead_source_tradeindia";
     public const string LeadSourceWhatsApp  = "lead_source_whatsapp";
     public const string LeadSourceWebForms  = "lead_source_web_forms";
+    public const string LeadImport         = "lead_import";          // Excel + Google Sheets bulk import
 
     // ── Communication ────────────────────────────────────────────────────────
 
@@ -136,6 +137,7 @@ public static class FeatureCatalog
         // Lead capture
         LeadDistribution, LeadSourceFacebook, LeadSourceGoogleAds,
         LeadSourceIndiaMart, LeadSourceTradeIndia, LeadSourceWhatsApp, LeadSourceWebForms,
+        LeadImport,
         // Communication
         EmailCampaign, SmsCampaign, WhatsAppOneToOne, WhatsAppBulkCampaign,
         ChatBots, CustomGateways, CallSync, CallRecording, CloudTelephony, Dialer,
