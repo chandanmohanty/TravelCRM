@@ -120,8 +120,9 @@ public sealed class GoogleOAuthController : ControllerBase
             existing.ConnectedByUserId = _user.IsAuthenticated ? _user.UserId : Guid.Empty;
             existing.ConnectedAt = DateTime.UtcNow;
         }
-        await _db.SaveChangesAsync(ct);
 
+        // Single SaveChanges so the token upsert + source reactivation land
+        // atomically (EF batches them in one transaction).
         var sources = await _db.LeadImportSources
             .Where(s => s.TenantId == tenantId && s.Status == LeadImportSourceStatus.Disconnected)
             .ToListAsync(ct);
@@ -152,16 +153,9 @@ public sealed class GoogleOAuthController : ControllerBase
         if (token is null)
             return Ok(new { disconnected = true });
 
-        try
-        {
-            if (!string.IsNullOrEmpty(token.RefreshToken))
-                await _tokenProvider.RevokeAsync(token.RefreshToken!, ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Best-effort Google token revocation failed for tenant {TenantId}", tenantId);
-        }
-
+        // Persist the disconnect locally FIRST so a transient DB failure
+        // doesn't leave us "revoked at Google but still 'Connected' in CRM".
+        var refreshToken = token.RefreshToken;
         _db.GoogleOAuthTokens.Remove(token);
 
         var sources = await _db.LeadImportSources
@@ -170,6 +164,17 @@ public sealed class GoogleOAuthController : ControllerBase
         foreach (var s in sources) s.Status = LeadImportSourceStatus.Disconnected;
 
         await _db.SaveChangesAsync(ct);
+
+        // Best-effort revoke AFTER the local state is persisted.
+        try
+        {
+            if (!string.IsNullOrEmpty(refreshToken))
+                await _tokenProvider.RevokeAsync(refreshToken!, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Best-effort Google token revocation failed for tenant {TenantId}", tenantId);
+        }
 
         return Ok(new { disconnected = true });
     }
