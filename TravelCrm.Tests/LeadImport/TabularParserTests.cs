@@ -61,4 +61,39 @@ public sealed class TabularParserTests
             () => new CsvLeadParser().Parse(new MemoryStream(Encoding.UTF8.GetBytes(sb.ToString())), "big.csv"));
         Assert.Contains("10,000", ex.Message);
     }
+
+    [Fact]
+    public void Csv_handles_lf_only_line_endings()
+    {
+        var csv = "Email,First\na@b.com,Bob\nc@d.com,Carol\n";
+        var d = new CsvLeadParser().Parse(new MemoryStream(Encoding.UTF8.GetBytes(csv)), "lf.csv");
+        Assert.Equal(2, d.Rows.Count);
+        Assert.Equal("Bob", d.Rows[0]["First"]);
+    }
+
+    [Fact]
+    public void Csv_handles_cr_only_line_endings()
+    {
+        var csv = "Email,First\ra@b.com,Bob\rc@d.com,Carol\r";
+        var d = new CsvLeadParser().Parse(new MemoryStream(Encoding.UTF8.GetBytes(csv)), "cr.csv");
+        Assert.Equal(2, d.Rows.Count);
+        Assert.Equal("Carol", d.Rows[1]["First"]);
+    }
+
+    [Fact]
+    public void Csv_handles_quoted_newline()
+    {
+        var csv = "Email,Notes\r\na@b.com,\"line1\nline2\"\r\n";
+        var d = new CsvLeadParser().Parse(new MemoryStream(Encoding.UTF8.GetBytes(csv)), "q.csv");
+        Assert.Equal("line1\nline2", d.Rows[0]["Notes"]);
+    }
+
+    [Fact]
+    public void Csv_unterminated_quote_throws()
+    {
+        var csv = "Email,Notes\r\na@b.com,\"oops no close\r\n";
+        var ex = Assert.Throws<LeadImportParseException>(
+            () => new CsvLeadParser().Parse(new MemoryStream(Encoding.UTF8.GetBytes(csv)), "bad.csv"));
+        Assert.Contains("Unterminated", ex.Message);
+    }
 }

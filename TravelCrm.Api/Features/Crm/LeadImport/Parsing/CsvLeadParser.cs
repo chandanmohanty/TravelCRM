@@ -36,11 +36,16 @@ public sealed class CsvLeadParser : ITabularLeadParser
             {
                 if (c == '"') inQuotes = true;
                 else if (c == ',') EndField();
-                else if (c == '\r') { /* swallow */ }
+                else if (c == '\r')
+                {
+                    if (reader.Peek() == '\n') reader.Read();  // CRLF: consume the LF too
+                    EndLine();                                  // CR-only: end line at the CR
+                }
                 else if (c == '\n') EndLine();
                 else sb.Append(c);
             }
         }
+        if (inQuotes) throw new LeadImportParseException("Unterminated quoted field in CSV.");
         if (sb.Length > 0 || fields.Count > 0) EndLine();
 
         var nonEmpty = lines.Where(l => l.Any(c => !string.IsNullOrWhiteSpace(c))).ToList();
