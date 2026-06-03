@@ -43,8 +43,11 @@ public static class LeadFieldMap
         ["notes"]          = new[] { "notes", "note", "comments", "remarks", "description" },
     };
 
+    private static readonly Regex NormRx =
+        new("[^a-z0-9]", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
     private static string Norm(string s) =>
-        Regex.Replace(s ?? string.Empty, "[^a-z0-9]", "", RegexOptions.IgnoreCase).ToLowerInvariant();
+        NormRx.Replace(s ?? string.Empty, "").ToLowerInvariant();
 
     /// <summary>CRM field → best-guess source header (only confident matches).</summary>
     public static Dictionary<string, string> GuessMapping(IEnumerable<string> headers)
@@ -78,6 +81,7 @@ public static class LeadFieldMap
         var email = Get("email").ToLowerInvariant();
         if (string.IsNullOrWhiteSpace(email)) return (null, "Missing required field: email");
         if (!EmailRx.IsMatch(email)) return (null, $"Invalid email: {email}");
+        if (email.Length > 256) return (null, $"Email too long (max 256): {email}");
 
         var lead = new Lead
         {
@@ -86,8 +90,8 @@ public static class LeadFieldMap
             LastName  = Clamp(Get("lastName"), 100),
             Phone     = Clamp(Get("phone"), 50),
             Company   = Clamp(Get("company"), 200),
-            JobTitle  = Clamp(Get("jobTitle"), 150),
-            AssignedTo= Clamp(Get("assignedTo"), 256),
+            JobTitle  = Clamp(Get("jobTitle"), 200),
+            AssignedTo= Clamp(Get("assignedTo"), 200),
             Notes     = Clamp(Get("notes"), 4000),
         };
 
