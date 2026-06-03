@@ -26,6 +26,7 @@ import {
 } from '../../../core/models/lead-import.model';
 import { GoogleSheetsWizardComponent } from '../leads/import/google-sheets-wizard.component';
 import { LeadSourceEditComponent } from './lead-source-edit.component';
+import { HasFeatureDirective } from '../../../core/directives/has-feature.directive';
 
 interface SyncResultSummary {
   created: number;
@@ -56,9 +57,10 @@ interface SyncResultSummary {
     MatSnackBarModule,
     MatTableModule,
     MatTooltipModule,
+    HasFeatureDirective,
   ],
   template: `
-    <div class="ls-page">
+    <div class="ls-page" *hasFeature="'lead_import'">
 
       <!-- ── Header ───────────────────────────────── -->
       <div class="ls-header">
@@ -163,13 +165,15 @@ interface SyncResultSummary {
               <th mat-header-cell *matHeaderCellDef class="ls-actions-head">Actions</th>
               <td mat-cell *matCellDef="let row" class="ls-actions-cell">
                 <button mat-icon-button
-                        matTooltip="Sync now"
-                        [disabled]="busyId() === row.id"
+                        aria-label="Sync now"
+                        [matTooltip]="row.status === 'Disconnected' ? 'Reconnect Google to enable' : 'Sync now'"
+                        [disabled]="busyId() === row.id || row.status === 'Disconnected'"
                         (click)="syncNow(row)">
                   <mat-icon>cloud_sync</mat-icon>
                 </button>
                 <button mat-icon-button
                         *ngIf="row.status !== 'Paused'"
+                        aria-label="Pause sync"
                         matTooltip="Pause"
                         [disabled]="busyId() === row.id || row.status === 'Disconnected'"
                         (click)="pause(row)">
@@ -177,18 +181,21 @@ interface SyncResultSummary {
                 </button>
                 <button mat-icon-button
                         *ngIf="row.status === 'Paused'"
+                        aria-label="Resume sync"
                         matTooltip="Resume"
                         [disabled]="busyId() === row.id"
                         (click)="resume(row)">
                   <mat-icon>play_arrow</mat-icon>
                 </button>
                 <button mat-icon-button
-                        matTooltip="Edit mapping"
-                        [disabled]="busyId() === row.id"
+                        aria-label="Edit mapping"
+                        [matTooltip]="row.status === 'Disconnected' ? 'Reconnect Google to enable' : 'Edit mapping'"
+                        [disabled]="busyId() === row.id || row.status === 'Disconnected'"
                         (click)="edit(row)">
                   <mat-icon>edit</mat-icon>
                 </button>
                 <button mat-icon-button class="ls-danger"
+                        aria-label="Disconnect source"
                         matTooltip="Disconnect"
                         [disabled]="busyId() === row.id"
                         (click)="disconnect(row)">
