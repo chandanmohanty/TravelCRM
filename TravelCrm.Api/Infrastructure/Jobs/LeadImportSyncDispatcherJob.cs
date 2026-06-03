@@ -15,12 +15,14 @@ public sealed class LeadImportSyncDispatcherJob(
 {
     public async Task ExecuteAsync(CancellationToken ct)
     {
-        var now = DateTime.UtcNow;
         var active = await db.LeadImportSources
             .Where(s => s.Status == LeadImportSourceStatus.Active
                      && s.SyncCadence != SyncCadence.Manual)
             .ToListAsync(ct);
 
+        // Capture `now` AFTER the query so a slow query doesn't shift the
+        // due-check earlier than wall clock.
+        var now = DateTime.UtcNow;
         var due = active.Where(s => IsDue(s, now)).ToList();
         foreach (var s in due)
             BackgroundJob.Enqueue<RunLeadImportSyncJob>(
@@ -32,6 +34,10 @@ public sealed class LeadImportSyncDispatcherJob(
 
     internal static bool IsDue(LeadImportSource s, DateTime now)
     {
+        // Manual is never auto-due. Guard here too so a unit test that calls
+        // IsDue directly with a Manual source doesn't hit DateTime overflow
+        // via TimeSpan.MaxValue addition.
+        if (s.SyncCadence == SyncCadence.Manual) return false;
         if (s.LastPolledAt is null) return true;
         var interval = s.SyncCadence switch
         {
