@@ -452,8 +452,15 @@ export class GoogleSheetsWizardComponent implements OnInit {
             'width=520,height=680',
           );
 
+          // Pin the postMessage listener to the OAuth callback origin so a
+          // hostile page in another tab can't spoof 'google-connected'.
+          // (Defense in depth: fetchStatus() re-validates server-side.)
+          let expectedOrigin: string | null = null;
+          try { expectedOrigin = new URL(r.url).origin; } catch { /* malformed url */ }
+
           this.removeOAuthListener();
           const onMsg = (ev: MessageEvent) => {
+            if (expectedOrigin !== null && ev.origin !== expectedOrigin) return;
             if (ev.data === 'google-connected') {
               this.removeOAuthListener();
               try { popup?.close(); } catch { /* ignore */ }
