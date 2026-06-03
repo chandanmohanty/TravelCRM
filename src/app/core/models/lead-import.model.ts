@@ -41,6 +41,62 @@ export interface LeadImportResult {
   errors: LeadImportRowOutcome[];
 }
 
+// ── Google Sheets — OAuth status + Sheets metadata (Task 14) ──────────────
+
+export interface GoogleStatus {
+  configured: boolean;
+  connected: boolean;
+  grantedScopes: string;
+}
+
+export interface SheetTab {
+  title: string;
+}
+
+export interface SheetHeaders {
+  headers: string[];
+  previewRows: Record<string, string>[];
+}
+
+// ── Lead Sources — recurring Google Sheets sync (Task 14) ─────────────────
+
+export type LeadSourceSyncCadence = 'Manual' | 'Every15Min' | 'Hourly' | 'Daily';
+export type LeadSourceStatus = 'Active' | 'Paused' | 'Error' | 'Disconnected';
+
+export interface LeadSource {
+  id: string;
+  displayName: string;
+  spreadsheetId: string;
+  sheetName: string;
+  columnMapping: Record<string, string>;
+  matchKeyField: string;
+  syncCadence: LeadSourceSyncCadence;
+  status: LeadSourceStatus;
+  lastPolledAt: string | null;
+  lastSuccessAt: string | null;
+  lastResultJson: string | null;
+  lastError: string | null;
+  rowVersion: string;
+}
+
+export interface CreateLeadSourceRequest {
+  displayName: string;
+  spreadsheetId: string;
+  sheetName: string;
+  columnMapping: Record<string, string>;
+  matchKeyField: string;
+  syncCadence: LeadSourceSyncCadence;
+}
+
+export interface UpdateLeadSourceRequest {
+  rowVersion: string;
+  displayName: string;
+  sheetName: string;
+  columnMapping: Record<string, string>;
+  matchKeyField: string;
+  syncCadence: LeadSourceSyncCadence;
+}
+
 /** Canonical lead fields that can be mapped from imported file headers. */
 export const LEAD_IMPORT_FIELDS: ImportField[] = [
   { key: 'email',           label: 'Email',           required: true  },

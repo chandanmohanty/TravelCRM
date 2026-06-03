@@ -29,6 +29,7 @@ import { LeadsService, LeadDto, LeadListFilters } from '../../../../core/service
 import { LeadStatus, LeadSource } from '../../../../core/models/crm.models';
 import { HasFeatureDirective } from '../../../../core/directives/has-feature.directive';
 import { ExcelImportWizardComponent } from '../import/excel-import-wizard.component';
+import { GoogleSheetsWizardComponent } from '../import/google-sheets-wizard.component';
 
 @Component({
   selector: 'app-lead-list',
@@ -535,8 +536,17 @@ export class LeadListComponent implements OnInit, AfterViewInit {
   }
 
   openGoogleSheets(): void {
-    // Wired in Task 14 (Google Sheets wizard).
-    this.snack.open('Google Sheets sync is coming soon.', 'Close', { duration: 2500 });
+    const ref = this.sidePanel.open<GoogleSheetsWizardComponent, void, boolean>(
+      GoogleSheetsWizardComponent,
+      {
+        title:    'Connect Google Sheet',
+        subtitle: 'Recurring lead sync',
+        width:    '560px',
+      },
+    );
+    ref.afterClosed().pipe(takeUntilDestroyed(this.destroyRef)).subscribe((refreshed) => {
+      if (refreshed) this.load();
+    });
   }
 
   createDeal(lead: LeadDto): void {
