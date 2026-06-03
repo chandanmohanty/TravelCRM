@@ -24,6 +24,12 @@ export const CrmRoutes: Routes = [
         data: { title: 'Edit Lead', breadcrumb: 'Edit Lead' },
       },
       {
+        path: 'lead-sources',
+        loadComponent: () =>
+          import('./lead-sources/lead-sources.component').then((m) => m.LeadSourcesComponent),
+        data: { title: 'Lead Sources', breadcrumb: 'Lead Sources', feature: 'lead_import' },
+      },
+      {
         path: 'companies',
         loadComponent: () =>
           import('./companies/company-list/company-list.component').then((m) => m.CompanyListComponent),

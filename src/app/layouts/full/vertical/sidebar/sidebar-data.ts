@@ -46,6 +46,12 @@ export const navItems: NavItem[] = [
         subItemIcon: true,
         route: '/crm/leads/new',
       },
+      {
+        displayName: 'Lead Sources',
+        iconName: 'solar:round-alt-arrow-right-line-duotone',
+        subItemIcon: true,
+        route: '/crm/lead-sources',
+      },
     ],
   },
   {
