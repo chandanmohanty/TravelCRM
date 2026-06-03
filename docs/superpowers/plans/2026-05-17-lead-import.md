@@ -14,6 +14,37 @@
 
 ---
 
+## ▶ EXECUTION PROGRESS
+
+**Status: ✅ COMPLETE — All 16 tasks shipped on master (2026-06-04).**
+
+| Task | Description | Commit |
+|---|---|---|
+| 1 | NuGet deps + GoogleSheetsOptions + lead_import feature code | `e9db1e1` |
+| 2 | Domain entities + enums | `b09979d` |
+| 3 | EF config + AddLeadImport migration + plan grant | `163ba05` |
+| 4 | LeadFieldMap (TDD) | `af51062` + `8d4c99b` |
+| 5 | Tabular parsers (ClosedXML + CSV) | `c9e1dbe` + `3a2aa66` |
+| 6 | LeadImportEngine (shared upsert/dedupe/A3) | `384401a` + `0a0e66f` + `48efd76` |
+| 7 | Excel commands + controller + staging sweep | `5cc6923` + `6c996e1` |
+| 8 | Frontend Excel wizard + mapping + dropdown | `d0e0274` |
+| 9 | GoogleSheetsGate + TokenProvider + SheetsReader | `3fbcb5d` + `28f13ae` |
+| 10 | GoogleOAuthController + OAuthState HMAC | `dad57c9` + `d78eb1f` |
+| 11 | Sheets queries + LeadImportSource CRUD | `f22702f` + `583f1b9` |
+| 12 | LeadSourcesController + GoogleSheetsController | `1980123` |
+| 13 | Hangfire sync job + dispatcher + registrar | `e4302ca` + `03d14ee` |
+| 14 | Frontend Google Sheets wizard | `0e8cde5` + `6ef6995` |
+| 15 | Lead Sources management page + route + sidebar | `cad5747` + `46318e0` |
+| 16 | Wrap — sync-job tests + plan banner + graphify | (this commit) |
+
+**Test suite**: 166 passed / 1 pre-existing skip / 0 failed. Build: 0 errors / 2 pre-existing CS9113 / 0 CS0618.
+
+**Known follow-ups** (T16 deferred, all documented in code comments):
+- `Notification.UserId` is non-nullable — `RunLeadImportSyncJob` has a `TODO(T16)` placeholder where a tenant notification should be created on sync failure. Once the Notification entity gets a "system actor" pattern, fill in the missing notification.
+- `RunLeadImportSyncCommand` does not block manual sync on `Paused`/`Error`/`Disconnected` sources by design — manual override is intentional. The frontend now disables the Sync Now button for `Disconnected` rows.
+
+---
+
 ## Conventions (apply to every task)
 
 - Before `dotnet build`/`dotnet ef`: `Get-Process -Name "TravelCrm.Api" -ErrorAction SilentlyContinue | Stop-Process -Force` (dev server locks the exe).
