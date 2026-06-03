@@ -70,7 +70,7 @@ public sealed class LeadImportEngine(ApplicationDbContext db) : ILeadImportEngin
                 Track(rowNumber, key, LeadImportRowStatus.Skipped, "duplicate in source");
                 continue;
             }
-            var hash = ContentHash(raw, mapping);
+            var hash = ContentHash(raw, mapping, matchKeyField);
             batch.Add((rowNumber, lead!, key, hash));
             if (batch.Count >= BatchSize)
                 await FlushAsync(batch, stateByKey, tenantId, sourceId, actingUserId, Track, ct);
@@ -194,17 +194,24 @@ public sealed class LeadImportEngine(ApplicationDbContext db) : ILeadImportEngin
         }
     }
 
-    // matchKeyField currently only supports "email" — design choice; spec §4
-    // says "Key normalised (email → lower+trim)". email is already lowercased
-    // by LeadFieldMap.Project; trim defensively here.
     private static string NormaliseKey(string field, Lead l)
-        => (field == "email" ? l.Email : l.Email).Trim();
+    {
+        // Phase-1 supports only email as the match key. Fail loud at the
+        // boundary instead of silently keying by email when callers pass
+        // something else — T11/T12 will surface this via the API.
+        if (field != "email")
+            throw new NotSupportedException(
+                $"Match-key field '{field}' is not supported. Only 'email' is implemented.");
+        return l.Email.Trim();
+    }
 
     private static string ContentHash(
         IReadOnlyDictionary<string, string> row,
-        IReadOnlyDictionary<string, string> mapping)
+        IReadOnlyDictionary<string, string> mapping,
+        string matchKeyField)
     {
         var sb = new StringBuilder();
+        sb.Append("matchKey=").Append(matchKeyField).Append(Sep);  // future-proof
         foreach (var f in LeadFieldMap.Fields.OrderBy(f => f.Key, StringComparer.Ordinal))
             if (mapping.TryGetValue(f.Key, out var hdr) && row.TryGetValue(hdr, out var v))
                 sb.Append(f.Key).Append('=').Append((v ?? "").Trim()).Append(Sep);
